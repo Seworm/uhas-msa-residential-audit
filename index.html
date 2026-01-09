@@ -196,6 +196,7 @@
             color: var(--primary);
         }
         
+        /* FIXED: Rooms Grid - Removed display: none from CSS */
         .rooms-grid {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
@@ -205,7 +206,6 @@
             padding: 10px;
             background: #f9f9f9;
             border-radius: 8px;
-            display: none;
         }
         
         .room-btn {
@@ -216,11 +216,27 @@
             text-align: center;
             cursor: pointer;
             font-size: 14px;
+            transition: all 0.2s;
+        }
+        
+        .room-btn:hover {
+            background: #f0f7ff;
+            border-color: var(--primary);
         }
         
         .room-btn.selected {
             background: var(--primary);
             color: white;
+            border-color: var(--primary);
+        }
+        
+        /* Room section container */
+        .room-section {
+            display: none; /* Hidden by default */
+        }
+        
+        .room-section.show {
+            display: block; /* Shown when block is selected */
         }
         
         /* Buttons */
@@ -334,6 +350,12 @@
                 grid-template-columns: 1fr;
             }
         }
+        
+        @media (max-width: 480px) {
+            .rooms-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
     </style>
 </head>
 <body>
@@ -439,8 +461,8 @@
                         </div>
                     </div>
                     
-                    <!-- Room Selection -->
-                    <div class="form-group" id="roomSection" style="display: none;">
+                    <!-- Room Selection - FIXED: Changed to room-section class -->
+                    <div class="form-group room-section" id="roomSection">
                         <label>Select Room Number (1-40) *</label>
                         <div class="rooms-grid" id="roomsGrid"></div>
                     </div>
@@ -815,24 +837,52 @@
         updatePendingCount();
     }
     
-    // ============== EVENT HANDLERS ==============
+    // ============== FIXED EVENT HANDLERS ==============
     function setupEventListeners() {
-        // Block selection
+        // Block selection - FIXED
         document.querySelectorAll('.block-btn').forEach(btn => {
             btn.addEventListener('click', function() {
-                document.querySelectorAll('.block-btn').forEach(b => b.classList.remove('selected'));
+                console.log('Block clicked:', this.dataset.block);
+                
+                // Remove selection from all blocks
+                document.querySelectorAll('.block-btn').forEach(b => {
+                    b.classList.remove('selected');
+                });
+                
+                // Select current block
                 this.classList.add('selected');
                 selectedBlock = this.dataset.block;
-                document.getElementById('roomSection').style.display = 'block';
+                
+                // Show room selection using class instead of style
+                const roomSection = document.getElementById('roomSection');
+                roomSection.classList.add('show');
+                
+                // Clear any previous room selection
+                selectedRoom = "";
+                document.querySelectorAll('.room-btn').forEach(r => {
+                    r.classList.remove('selected');
+                });
+                
+                showToast(`Selected ${selectedBlock} block`, 'info');
             });
         });
         
-        // Room selection
+        // Room selection - FIXED
         document.getElementById('roomsGrid').addEventListener('click', function(e) {
             if (e.target.classList.contains('room-btn')) {
-                document.querySelectorAll('.room-btn').forEach(b => b.classList.remove('selected'));
+                console.log('Room clicked:', e.target.dataset.room);
+                
+                // Remove selection from all rooms
+                document.querySelectorAll('.room-btn').forEach(r => {
+                    r.classList.remove('selected');
+                });
+                
+                // Select clicked room
                 e.target.classList.add('selected');
                 selectedRoom = e.target.dataset.room;
+                
+                // Show confirmation
+                showToast(`Selected: ${selectedBlock}, Room ${selectedRoom}`, 'success');
             }
         });
         
@@ -867,7 +917,7 @@
         // Clear form
         document.getElementById('clearBtn').addEventListener('click', clearForm);
         
-        // Reload database button (hidden by default)
+        // Reload database button
         setupReloadButton();
     }
     
@@ -927,8 +977,11 @@
         
         document.getElementById('studentSearch').value = '';
         document.getElementById('studentInfo').style.display = 'none';
-        document.getElementById('roomSection').style.display = 'none';
         
+        // Hide room section using class
+        document.getElementById('roomSection').classList.remove('show');
+        
+        // Clear selections
         document.querySelectorAll('.block-btn').forEach(b => b.classList.remove('selected'));
         document.querySelectorAll('.room-btn').forEach(b => b.classList.remove('selected'));
         
@@ -1069,5 +1122,4 @@
     document.getElementById('executiveID').addEventListener('input', saveExecutiveInfo);
 </script>
 </body>
-
 </html>
