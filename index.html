@@ -12,6 +12,7 @@
             --accent: #2ec27e;
             --danger: #c9190b;
             --warning: #e5a50a;
+            --github: #24292e;
         }
         
         * {
@@ -85,6 +86,11 @@
         .sync-status.offline {
             color: var(--warning);
             border: 1px solid var(--warning);
+        }
+        
+        .sync-status.github {
+            color: var(--github);
+            border: 1px solid var(--github);
         }
         
         /* Form */
@@ -307,6 +313,11 @@
             color: #333;
         }
         
+        .btn-github {
+            background: var(--github);
+            color: white;
+        }
+        
         /* Toast */
         .toast {
             position: fixed;
@@ -368,6 +379,70 @@
             font-size: 13px;
         }
         
+        /* Github Config Section */
+        .config-section {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .config-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            padding: 10px;
+            background: #f0f7ff;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+        
+        .config-content {
+            display: none;
+            margin-top: 10px;
+        }
+        
+        .config-content.show {
+            display: block;
+        }
+        
+        .github-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 12px;
+        }
+        
+        .github-status.connected {
+            background: #e6ffed;
+            color: #22863a;
+            border: 1px solid #22863a;
+        }
+        
+        .github-status.disconnected {
+            background: #ffeef0;
+            color: #cb2431;
+            border: 1px solid #cb2431;
+        }
+        
+        .github-link {
+            color: var(--github);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 12px;
+            margin-top: 5px;
+            display: inline-block;
+        }
+        
+        .github-link:hover {
+            text-decoration: underline;
+        }
+        
         @media (max-width: 768px) {
             .blocks-grid {
                 grid-template-columns: 1fr;
@@ -397,8 +472,8 @@
     <div class="app-container">
         <!-- Sync Status -->
         <div class="sync-status" id="syncStatus">
-            <i class="fas fa-sync"></i>
-            <span id="statusText">Loading...</span>
+            <i class="fab fa-github"></i>
+            <span id="statusText">Initializing...</span>
         </div>
         
         <!-- Header -->
@@ -411,7 +486,8 @@
         <!-- Instructions -->
         <div class="instructions">
             <strong><i class="fas fa-info-circle"></i> INSTRUCTIONS:</strong> 
-            1. Select your ID → 2. Search student → 3. Select block → room → bed → 4. Submit
+            1. Select your ID → 2. Search student → 3. Select block → room → bed → 4. Submit<br>
+            <small style="color: #666;">Data stored securely on GitHub Gist</small>
         </div>
         
         <!-- Loading Overlay -->
@@ -521,7 +597,7 @@
                 <!-- Submit Buttons -->
                 <div class="action-buttons">
                     <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-paper-plane"></i> Submit Record
+                        <i class="fas fa-paper-plane"></i> Submit to GitHub
                     </button>
                     <button type="button" class="btn btn-secondary" id="clearBtn">
                         <i class="fas fa-redo"></i> Clear Form
@@ -529,11 +605,67 @@
                 </div>
             </form>
             
+            <!-- GitHub Configuration Section -->
+            <div class="config-section">
+                <div class="config-toggle" id="configToggle">
+                    <div>
+                        <i class="fab fa-github"></i> GitHub Configuration
+                    </div>
+                    <div>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </div>
+                
+                <div class="config-content" id="configContent">
+                    <div class="form-group">
+                        <label for="githubToken">
+                            <i class="fas fa-key"></i> GitHub Personal Access Token
+                            <small style="color: #666; display: block; font-weight: normal;">
+                                Create one at: <a href="https://github.com/settings/tokens" target="_blank">github.com/settings/tokens</a><br>
+                                Required scope: <code>gist</code>
+                            </small>
+                        </label>
+                        <input type="password" id="githubToken" 
+                               placeholder="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="gistId">
+                            <i class="fas fa-database"></i> Gist ID (Optional)
+                            <small style="color: #666; display: block; font-weight: normal;">
+                                Leave empty to create new gist, or enter existing gist ID
+                            </small>
+                        </label>
+                        <input type="text" id="gistId" 
+                               placeholder="e.g., 1234567890abcdef1234567890abcdef">
+                    </div>
+                    
+                    <button type="button" class="btn btn-github" id="saveConfigBtn" style="width: 100%; margin-top: 10px;">
+                        <i class="fas fa-save"></i> Save Configuration
+                    </button>
+                    
+                    <div id="githubStatus" class="github-status disconnected">
+                        <i class="fas fa-times-circle"></i>
+                        <span>Not connected to GitHub</span>
+                    </div>
+                    
+                    <div id="gistInfo" style="display: none; margin-top: 10px; font-size: 12px;">
+                        <strong>Connected Gist:</strong> 
+                        <a href="#" id="gistLink" target="_blank" class="github-link">
+                            View on GitHub
+                        </a>
+                        <br>
+                        <span id="gistStats">No submissions yet</span>
+                    </div>
+                </div>
+            </div>
+            
             <!-- App Info -->
             <div style="text-align: center; margin-top: 30px; font-size: 12px; color: #666;">
                 <p><i class="fas fa-database"></i> UHAS Student Database</p>
                 <p id="studentCount">Loading student count...</p>
                 <p id="selectedExecutive">No executive selected</p>
+                <p id="submissionStats" style="margin-top: 10px;"></p>
             </div>
         </div>
     </div>
@@ -543,10 +675,12 @@
 
     <script>
     // ============== CONFIGURATION ==============
-    const CONFIG = {
-        // Your Google Apps Script URL for submissions only
-        SUBMISSION_ENDPOINT: "https://script.google.com/macros/s/AKfycbxI8KyZQSuUsUtzZgQT71_JHCPnqcTs7jomfrK4-bW2JLlxWuOEWRZMA9AB3MdQm3K3/exec",
-        ADMIN_EMAIL: "sewormnyuielove@gmail.com"
+    const GITHUB_CONFIG = {
+        // User will configure their own token
+        USER_TOKEN: null,
+        GIST_ID: null,
+        GIST_FILENAME: 'uhas_audit_data.json',
+        GIST_DESCRIPTION: 'UHAS Hostel Audit Data - Medical Students'
     };
     
     // ============== DEFAULT EXECUTIVE IDs ==============
@@ -1237,13 +1371,15 @@
         { level: "100", id: "UHAS202501789", name: "Djabatey Dorcas Koryoo", programme: "MEDICINE", status: "Active" },
         { level: "100", id: "UHAS202502287", name: "Frimpong Sandra Serwaa", programme: "MEDICINE", status: "Active" }
     ];
-    
-    // ============== GLOBAL VARIABLES ==============
+
+         // ============== GLOBAL VARIABLES ==============
     let studentDatabase = STUDENT_DATABASE;
     let selectedBlock = "";
     let selectedRoom = "";
     let selectedStudent = null;
     let selectedExecutive = null;
+    let gistData = null;
+    let gistRecords = [];
     
     // ============== INITIALIZATION ==============
     document.addEventListener('DOMContentLoaded', function() {
@@ -1258,23 +1394,376 @@
         generateExecutiveButtons();
         generateRoomButtons();
         setupEventListeners();
-        updateOnlineStatus();
+        loadGitHubConfig();
         
         // Update UI with loaded data
         updateStudentCount();
-        showToast(`✅ Loaded ${studentDatabase.length} students`, 'success');
-        updateStatus(`${studentDatabase.length} students loaded`);
+        updateStatus('Ready');
+        
+        // Check GitHub connection
+        checkGitHubConnection();
+        
+        // Load last selected executive from localStorage
+        loadSelectedExecutive();
+        
+        // Setup config toggle
+        setupConfigToggle();
         
         // Monitor network status
         window.addEventListener('online', updateOnlineStatus);
         window.addEventListener('offline', updateOnlineStatus);
-        
-        // Add refresh button (for submissions only)
-        createRefreshButton();
-        
-        // Load last selected executive from localStorage
-        loadSelectedExecutive();
     });
+    
+    // ============== GITHUB GIST DATABASE FUNCTIONS ==============
+    
+    async function loadGitHubConfig() {
+        try {
+            const savedToken = localStorage.getItem('uhas_github_token');
+            const savedGistId = localStorage.getItem('uhas_gist_id');
+            
+            if (savedToken) {
+                GITHUB_CONFIG.USER_TOKEN = savedToken;
+                document.getElementById('githubToken').value = savedToken;
+            }
+            
+            if (savedGistId) {
+                GITHUB_CONFIG.GIST_ID = savedGistId;
+                document.getElementById('gistId').value = savedGistId;
+            }
+            
+            console.log('GitHub config loaded from localStorage');
+        } catch (error) {
+            console.error('Error loading GitHub config:', error);
+        }
+    }
+    
+    function saveGitHubConfig() {
+        const token = document.getElementById('githubToken').value.trim();
+        const gistId = document.getElementById('gistId').value.trim();
+        
+        if (token) {
+            GITHUB_CONFIG.USER_TOKEN = token;
+            localStorage.setItem('uhas_github_token', token);
+        }
+        
+        if (gistId) {
+            GITHUB_CONFIG.GIST_ID = gistId;
+            localStorage.setItem('uhas_gist_id', gistId);
+        }
+        
+        showToast('GitHub configuration saved', 'success');
+        checkGitHubConnection();
+    }
+    
+    async function checkGitHubConnection() {
+        const statusDiv = document.getElementById('githubStatus');
+        const syncStatus = document.getElementById('syncStatus');
+        
+        if (!GITHUB_CONFIG.USER_TOKEN) {
+            statusDiv.className = 'github-status disconnected';
+            statusDiv.innerHTML = '<i class="fas fa-times-circle"></i> <span>Enter GitHub Token to connect</span>';
+            syncStatus.className = 'sync-status offline';
+            return false;
+        }
+        
+        showLoading('Checking GitHub connection...');
+        
+        try {
+            // Try to get user info to verify token
+            const response = await fetch('https://api.github.com/user', {
+                headers: {
+                    'Authorization': `token ${GITHUB_CONFIG.USER_TOKEN}`,
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            });
+            
+            if (response.ok) {
+                const userData = await response.json();
+                console.log('GitHub connected as:', userData.login);
+                
+                statusDiv.className = 'github-status connected';
+                statusDiv.innerHTML = `<i class="fas fa-check-circle"></i> <span>Connected as ${userData.login}</span>`;
+                syncStatus.className = 'sync-status github';
+                
+                // Try to load existing gist
+                await loadGistData();
+                
+                hideLoading();
+                return true;
+            } else {
+                throw new Error('Invalid token');
+            }
+        } catch (error) {
+            console.error('GitHub connection error:', error);
+            
+            statusDiv.className = 'github-status disconnected';
+            statusDiv.innerHTML = '<i class="fas fa-times-circle"></i> <span>Connection failed - check token</span>';
+            syncStatus.className = 'sync-status offline';
+            
+            hideLoading();
+            return false;
+        }
+    }
+    
+    async function loadGistData() {
+        if (!GITHUB_CONFIG.USER_TOKEN || !GITHUB_CONFIG.GIST_ID) {
+            return;
+        }
+        
+        try {
+            const response = await fetch(`https://api.github.com/gists/${GITHUB_CONFIG.GIST_ID}`, {
+                headers: {
+                    'Authorization': `token ${GITHUB_CONFIG.USER_TOKEN}`,
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            });
+            
+            if (response.ok) {
+                gistData = await response.json();
+                
+                // Parse existing data
+                const fileContent = gistData.files[GITHUB_CONFIG.FILENAME]?.content;
+                if (fileContent) {
+                    try {
+                        const parsedData = JSON.parse(fileContent);
+                        gistRecords = Array.isArray(parsedData) ? parsedData : [parsedData];
+                        console.log(`Loaded ${gistRecords.length} records from Gist`);
+                        
+                        // Update Gist info display
+                        updateGistInfo();
+                    } catch (e) {
+                        console.error('Error parsing Gist data:', e);
+                        gistRecords = [];
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error loading Gist:', error);
+            gistRecords = [];
+        }
+    }
+    
+    async function createNewGist() {
+        try {
+            const initialData = {
+                app: "UHAS Hostel Audit",
+                created: new Date().toISOString(),
+                records: []
+            };
+            
+            const gistData = {
+                files: {
+                    [GITHUB_CONFIG.GIST_FILENAME]: {
+                        content: JSON.stringify(initialData, null, 2)
+                    }
+                },
+                description: GITHUB_CONFIG.GIST_DESCRIPTION,
+                public: false
+            };
+            
+            const response = await fetch('https://api.github.com/gists', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `token ${GITHUB_CONFIG.USER_TOKEN}`,
+                    'Accept': 'application/vnd.github.v3+json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(gistData)
+            });
+            
+            if (response.ok) {
+                const result = await response.json();
+                GITHUB_CONFIG.GIST_ID = result.id;
+                localStorage.setItem('uhas_gist_id', result.id);
+                document.getElementById('gistId').value = result.id;
+                
+                gistData = result;
+                gistRecords = [];
+                
+                showToast('New Gist created successfully!', 'success');
+                updateGistInfo();
+                
+                return result;
+            } else {
+                throw new Error('Failed to create Gist');
+            }
+        } catch (error) {
+            console.error('Error creating Gist:', error);
+            showToast('Failed to create Gist', 'error');
+            throw error;
+        }
+    }
+    
+    async function submitToGitHub(formData) {
+        if (!GITHUB_CONFIG.USER_TOKEN) {
+            showToast('Please configure GitHub token first', 'error');
+            return false;
+        }
+        
+        showLoading('Saving to GitHub Gist...');
+        
+        try {
+            // If no Gist ID, create new one
+            if (!GITHUB_CONFIG.GIST_ID) {
+                await createNewGist();
+            }
+            
+            // Load existing data first
+            await loadGistData();
+            
+            // Add new record
+            const recordId = Date.now();
+            const newRecord = {
+                id: recordId,
+                ...formData,
+                submissionTime: new Date().toISOString()
+            };
+            
+            gistRecords.push(newRecord);
+            
+            // Prepare updated Gist data
+            const updatedData = {
+                app: "UHAS Hostel Audit",
+                lastUpdated: new Date().toISOString(),
+                totalRecords: gistRecords.length,
+                records: gistRecords
+            };
+            
+            // Update the Gist
+            const updateData = {
+                files: {
+                    [GITHUB_CONFIG.GIST_FILENAME]: {
+                        content: JSON.stringify(updatedData, null, 2)
+                    }
+                },
+                description: `${GITHUB_CONFIG.GIST_DESCRIPTION} - ${gistRecords.length} records`
+            };
+            
+            const response = await fetch(`https://api.github.com/gists/${GITHUB_CONFIG.GIST_ID}`, {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': `token ${GITHUB_CONFIG.USER_TOKEN}`,
+                    'Accept': 'application/vnd.github.v3+json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(updateData)
+            });
+            
+            if (response.ok) {
+                const result = await response.json();
+                gistData = result;
+                
+                // Also save backup locally
+                saveLocalBackup(newRecord);
+                
+                showToast('✅ Record saved to GitHub Gist!', 'success');
+                updateSubmissionStats();
+                updateGistInfo();
+                
+                hideLoading();
+                return true;
+            } else {
+                throw new Error('Failed to update Gist');
+            }
+            
+        } catch (error) {
+            console.error('GitHub submission error:', error);
+            
+            // Fallback: Save to localStorage
+            saveToLocalStorage(formData);
+            showToast('📱 Saved locally (GitHub failed)', 'warning');
+            
+            hideLoading();
+            return false;
+        }
+    }
+    
+    function saveLocalBackup(record) {
+        const backups = JSON.parse(localStorage.getItem('uhas_local_backups') || '[]');
+        backups.push({
+            ...record,
+            backedUpAt: new Date().toISOString()
+        });
+        localStorage.setItem('uhas_local_backups', JSON.stringify(backups));
+    }
+    
+    function saveToLocalStorage(formData) {
+        const pending = JSON.parse(localStorage.getItem('uhas_pending_submissions') || '[]');
+        pending.push({
+            id: Date.now(),
+            ...formData,
+            timestamp: new Date().toISOString(),
+            status: 'pending'
+        });
+        localStorage.setItem('uhas_pending_submissions', JSON.stringify(pending));
+        
+        // Also create downloadable JSON
+        createDownloadableBackup(formData);
+    }
+    
+    async function syncLocalSubmissions() {
+        const pending = JSON.parse(localStorage.getItem('uhas_pending_submissions') || '[]');
+        if (pending.length === 0) return;
+        
+        if (!await checkGitHubConnection()) {
+            showToast('Cannot sync: GitHub not connected', 'warning');
+            return;
+        }
+        
+        showLoading(`Syncing ${pending.length} local submissions...`);
+        
+        const failed = [];
+        
+        for (const submission of pending) {
+            try {
+                const { id, timestamp, status, ...formData } = submission;
+                await submitToGitHub(formData);
+                console.log(`Synced local submission: ${id}`);
+            } catch (error) {
+                console.error('Failed to sync:', error);
+                failed.push(submission);
+            }
+        }
+        
+        localStorage.setItem('uhas_pending_submissions', JSON.stringify(failed));
+        
+        if (failed.length === 0) {
+            showToast('✅ All local submissions synced', 'success');
+        } else {
+            showToast(`⚠️ ${failed.length} submissions still pending`, 'warning');
+        }
+        
+        hideLoading();
+    }
+    
+    function createDownloadableBackup(formData) {
+        const dataStr = JSON.stringify(formData, null, 2);
+        const dataBlob = new Blob([dataStr], { type: 'application/json' });
+        
+        const url = window.URL.createObjectURL(dataBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `UHAS_Audit_Backup_${formData.studentID}_${Date.now()}.json`;
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+    }
+    
+    function updateGistInfo() {
+        const gistInfoDiv = document.getElementById('gistInfo');
+        const gistLink = document.getElementById('gistLink');
+        const gistStats = document.getElementById('gistStats');
+        
+        if (GITHUB_CONFIG.GIST_ID && gistData) {
+            gistInfoDiv.style.display = 'block';
+            gistLink.href = gistData.html_url;
+            gistStats.textContent = `${gistRecords.length} records stored`;
+        } else {
+            gistInfoDiv.style.display = 'none';
+        }
+    }
     
     // ============== EXECUTIVE SELECTION ==============
     function generateExecutiveButtons() {
@@ -1290,7 +1779,6 @@
             executiveGrid.appendChild(execBtn);
         });
         
-        // Add click handlers for executive buttons
         document.querySelectorAll('.executive-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 document.querySelectorAll('.executive-btn').forEach(b => {
@@ -1305,8 +1793,6 @@
                 
                 updateSelectedExecutiveDisplay();
                 showToast(`Selected: ${selectedExecutive.id}`, 'success');
-                
-                // Save to localStorage
                 saveSelectedExecutive();
             });
         });
@@ -1328,7 +1814,6 @@
         if (savedExec) {
             try {
                 selectedExecutive = JSON.parse(savedExec);
-                // Find and select the corresponding button
                 document.querySelectorAll('.executive-btn').forEach(btn => {
                     if (btn.dataset.executiveId === selectedExecutive.id) {
                         btn.classList.add('selected');
@@ -1374,7 +1859,6 @@
             return idMatch || nameMatch;
         });
         
-        // Sort results: exact matches first, then by level
         results.sort((a, b) => {
             const aIdExact = a.id.toLowerCase() === searchTerm;
             const bIdExact = b.id.toLowerCase() === searchTerm;
@@ -1386,7 +1870,7 @@
             if (aStartsWith && !bStartsWith) return -1;
             if (!aStartsWith && bStartsWith) return 1;
             
-            return parseInt(b.level) - parseInt(a.level); // Higher levels first
+            return parseInt(b.level) - parseInt(a.level);
         });
         
         const displayResults = results.slice(0, 15);
@@ -1411,7 +1895,6 @@
         
         resultsDiv.style.display = 'block';
         
-        // Add click handlers
         document.querySelectorAll('.search-item').forEach(item => {
             item.addEventListener('click', function() {
                 const studentId = this.dataset.id;
@@ -1438,110 +1921,20 @@
     }
     
     // ============== FORM SUBMISSION ==============
-    async function submitToGoogleSheets(formData) {
-        showLoading('Submitting record...');
+    async function handleFormSubmit(formData) {
+        if (!validateForm()) return false;
         
-        try {
-            // Try to submit directly to Google Sheets
-            const response = await submitViaGoogleAppsScript(formData);
-            
-            if (response && response.success !== false) {
-                showToast('✅ Record submitted successfully!', 'success');
-                clearForm();
-                return true;
-            } else {
-                throw new Error(response?.error || 'Submission failed');
-            }
-            
-        } catch (error) {
-            console.error('Direct submission error:', error);
-            
-            // Save locally for offline submission
-            savePendingSubmission(formData);
-            showToast('📱 Saved offline. Will submit when online.', 'warning');
-            return false;
-            
-        } finally {
-            hideLoading();
-        }
-    }
-    
-    async function submitViaGoogleAppsScript(formData) {
-        const scriptUrl = CONFIG.SUBMISSION_ENDPOINT;
+        // Always save locally first
+        saveToLocalStorage(formData);
         
-        try {
-            const response = await fetch(scriptUrl, {
-                method: 'POST',
-                mode: 'no-cors', // Add this to handle CORS issues
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(formData)
-            });
-            
-            // With no-cors mode, we can't read the response
-            // Assume success if the request was sent
-            return { success: true, message: 'Submitted successfully' };
-            
-        } catch (error) {
-            console.error('Fetch error:', error);
-            
-            // Try alternative method - use form submission
-            try {
-                await submitViaForm(formData);
-                return { success: true, message: 'Submitted via form' };
-            } catch (formError) {
-                console.error('Form submission error:', formError);
-                throw error;
-            }
-        }
-    }
-    
-    async function submitViaForm(formData) {
-        const scriptUrl = CONFIG.SUBMISSION_ENDPOINT;
+        // Try to submit to GitHub
+        const submitted = await submitToGitHub(formData);
         
-        // Create a hidden form
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = scriptUrl;
-        form.style.display = 'none';
-        form.target = '_blank'; // Submit in new window/tab
-        
-        // Add all form data as hidden inputs
-        for (const key in formData) {
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = key;
-            input.value = formData[key];
-            form.appendChild(input);
+        if (submitted) {
+            clearForm();
         }
         
-        // Add to document and submit
-        document.body.appendChild(form);
-        form.submit();
-        
-        // Clean up
-        setTimeout(() => {
-            document.body.removeChild(form);
-        }, 1000);
-    }
-    
-    function savePendingSubmission(formData) {
-        const pending = JSON.parse(localStorage.getItem('uhas_pending') || '[]');
-        const submissionId = Date.now();
-        
-        pending.push({
-            id: submissionId,
-            ...formData,
-            timestamp: new Date().toISOString(),
-            status: 'pending'
-        });
-        
-        localStorage.setItem('uhas_pending', JSON.stringify(pending));
-        updatePendingCount();
-        
-        console.log(`Saved pending submission ID: ${submissionId}`);
-        return submissionId;
+        return submitted;
     }
     
     // ============== EVENT HANDLERS ==============
@@ -1556,10 +1949,8 @@
                 this.classList.add('selected');
                 selectedBlock = this.dataset.block;
                 
-                // Show room selection
                 document.getElementById('roomSection').classList.add('active');
                 
-                // Clear room selection
                 selectedRoom = "";
                 document.querySelectorAll('.room-btn').forEach(r => {
                     r.classList.remove('selected');
@@ -1587,8 +1978,6 @@
         document.getElementById('auditForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            if (!validateForm()) return;
-            
             const formData = {
                 executiveID: selectedExecutive.id,
                 executiveName: selectedExecutive.name,
@@ -1603,26 +1992,34 @@
                 notes: document.getElementById('notes').value.trim() || '',
                 submissionTime: new Date().toISOString(),
                 deviceInfo: navigator.userAgent,
-                appVersion: '3.0'
+                appVersion: '4.0-github'
             };
             
-            // Try direct submission first
-            const submitted = await submitToGoogleSheets(formData);
-            
-            // If submitted online, clear form
-            if (submitted) {
-                clearForm();
-            }
+            await handleFormSubmit(formData);
         });
         
         // Clear form
         document.getElementById('clearBtn').addEventListener('click', clearForm);
+        
+        // Save GitHub config
+        document.getElementById('saveConfigBtn').addEventListener('click', saveGitHubConfig);
         
         // Click outside to close search results
         document.addEventListener('click', function(e) {
             if (!e.target.closest('.search-container')) {
                 document.getElementById('searchResults').style.display = 'none';
             }
+        });
+    }
+    
+    function setupConfigToggle() {
+        const toggle = document.getElementById('configToggle');
+        const content = document.getElementById('configContent');
+        
+        toggle.addEventListener('click', function() {
+            content.classList.toggle('show');
+            const icon = this.querySelector('.fa-chevron-down');
+            icon.classList.toggle('fa-rotate-180');
         });
     }
     
@@ -1668,7 +2065,6 @@
         document.getElementById('bedSpace').value = '';
         document.getElementById('notes').value = '';
         
-        // Keep executive selection and date
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('auditDate').value = today;
         
@@ -1689,18 +2085,25 @@
     }
     
     function updateOnlineStatus() {
-        const statusDiv = document.getElementById('syncStatus');
+        const syncStatus = document.getElementById('syncStatus');
         
         if (navigator.onLine) {
-            statusDiv.className = 'sync-status online';
-            statusDiv.innerHTML = '<i class="fas fa-wifi"></i> <span id="statusText">Online</span>';
-            
-            // Try to sync pending submissions
-            syncPendingSubmissions();
-            
+            if (GITHUB_CONFIG.USER_TOKEN) {
+                syncStatus.className = 'sync-status github';
+                updateStatus('Online - GitHub Ready');
+                
+                // Try to sync pending submissions
+                const pending = JSON.parse(localStorage.getItem('uhas_pending_submissions') || '[]');
+                if (pending.length > 0) {
+                    setTimeout(() => syncLocalSubmissions(), 1000);
+                }
+            } else {
+                syncStatus.className = 'sync-status online';
+                updateStatus('Online');
+            }
         } else {
-            statusDiv.className = 'sync-status offline';
-            statusDiv.innerHTML = '<i class="fas fa-wifi-slash"></i> <span id="statusText">Offline</span>';
+            syncStatus.className = 'sync-status offline';
+            updateStatus('Offline - Saving Locally');
         }
     }
     
@@ -1711,42 +2114,18 @@
         }
     }
     
-    async function syncPendingSubmissions() {
-        const pending = JSON.parse(localStorage.getItem('uhas_pending') || '[]');
-        if (pending.length === 0) return;
+    function updateSubmissionStats() {
+        const pending = JSON.parse(localStorage.getItem('uhas_pending_submissions') || '[]');
+        const statsDiv = document.getElementById('submissionStats');
         
-        showToast(`Syncing ${pending.length} pending submission(s)...`, 'info');
-        
-        const failed = [];
-        
-        for (const submission of pending) {
-            try {
-                const { id, timestamp, status, ...formData } = submission;
-                await submitViaGoogleAppsScript(formData);
-                console.log(`Synced pending submission: ${id}`);
-            } catch (error) {
-                console.error('Failed to sync:', error);
-                failed.push(submission);
-            }
-        }
-        
-        localStorage.setItem('uhas_pending', JSON.stringify(failed));
-        
-        if (failed.length === 0) {
-            showToast('✅ All pending submissions synced', 'success');
+        if (pending.length > 0) {
+            statsDiv.innerHTML = `<span style="color: var(--warning);">
+                <i class="fas fa-exclamation-triangle"></i> ${pending.length} pending local submission(s)
+            </span>`;
         } else {
-            showToast(`⚠️ ${failed.length} submissions still pending`, 'warning');
-        }
-        
-        updatePendingCount();
-    }
-    
-    function updatePendingCount() {
-        const pending = JSON.parse(localStorage.getItem('uhas_pending') || '[]');
-        const statusText = document.getElementById('statusText');
-        
-        if (pending.length > 0 && statusText && navigator.onLine) {
-            statusText.textContent = `Online (${pending.length} pending)`;
+            statsDiv.innerHTML = `<span style="color: var(--accent);">
+                <i class="fas fa-check-circle"></i> All submissions synced
+            </span>`;
         }
     }
     
@@ -1795,15 +2174,16 @@
         }, 3000);
     }
     
-    function createRefreshButton() {
-        const refreshBtn = document.createElement('button');
-        refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i>';
-        refreshBtn.title = 'Sync Pending Submissions';
-        refreshBtn.style.cssText = `
+    // Add sync button
+    function addSyncButton() {
+        const syncBtn = document.createElement('button');
+        syncBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Sync';
+        syncBtn.title = 'Sync Local Submissions';
+        syncBtn.style.cssText = `
             position: fixed;
             bottom: 20px;
             right: 20px;
-            background: var(--primary);
+            background: var(--github);
             color: white;
             border: none;
             border-radius: 50%;
@@ -1819,21 +2199,54 @@
             transition: transform 0.3s;
         `;
         
-        refreshBtn.onmouseover = () => refreshBtn.style.transform = 'scale(1.1)';
-        refreshBtn.onmouseout = () => refreshBtn.style.transform = 'scale(1)';
-        refreshBtn.onclick = () => {
-            showToast('Syncing pending submissions...', 'info');
-            syncPendingSubmissions();
+        syncBtn.onmouseover = () => syncBtn.style.transform = 'scale(1.1)';
+        syncBtn.onmouseout = () => syncBtn.style.transform = 'scale(1)';
+        syncBtn.onclick = () => {
+            syncLocalSubmissions();
         };
         
-        document.body.appendChild(refreshBtn);
+        document.body.appendChild(syncBtn);
     }
+    
+    // Initialize sync button
+    addSyncButton();
     
     // Export functions
     window.loadStudentDatabase = function() {
-        // Database is already loaded from embedded data
         showToast(`Database already loaded (${studentDatabase.length} students)`, 'info');
+    };
+    
+    window.syncSubmissions = function() {
+        syncLocalSubmissions();
+    };
+    
+    window.exportLocalData = function() {
+        const pending = JSON.parse(localStorage.getItem('uhas_pending_submissions') || '[]');
+        const backups = JSON.parse(localStorage.getItem('uhas_local_backups') || '[]');
+        
+        const exportData = {
+            pendingSubmissions: pending,
+            localBackups: backups,
+            exportDate: new Date().toISOString(),
+            totalRecords: pending.length + backups.length
+        };
+        
+        const dataStr = JSON.stringify(exportData, null, 2);
+        const dataBlob = new Blob([dataStr], { type: 'application/json' });
+        
+        const url = window.URL.createObjectURL(dataBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `UHAS_Audit_Full_Export_${Date.now()}.json`;
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        
+        showToast('Local data exported', 'success');
     };
 </script>
 </body>
 </html>
+    
