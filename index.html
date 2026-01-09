@@ -500,6 +500,9 @@
             <div style="text-align: center; margin-top: 30px; font-size: 12px; color: #666;">
                 <p><i class="fas fa-database"></i> Connected to UHAS Student Database</p>
                 <p id="studentCount">Loading student count...</p>
+                <p style="font-size: 10px; color: #888; margin-top: 5px;">
+                    App Version: 2.0 | Works offline
+                </p>
             </div>
         </div>
     </div>
@@ -510,8 +513,8 @@
     <script>
     // ============== CONFIGURATION ==============
     const CONFIG = {
-        // Google Sheet CSV URL - REPLACE WITH YOUR ACTUAL URL
-        STUDENT_DB_SHEET: "https://docs.google.com/spreadsheets/d/e/2PACX-1vR3p0bgZVcN9uW2Pk-kmWPTAdUDUTXrGYqhPSbtSsJRdfT0lGYmuXoZTTYD20ZBcEB9Rb81_qbfVwUp/pub?output=csv",
+        // Using CORS proxy for Google Sheets access from any origin
+        STUDENT_DB_SHEET: "https://corsproxy.io/?https://docs.google.com/spreadsheets/d/e/2PACX-1vR3p0bgZVcN9uW2Pk-kmWPTAdUDUTXrGYqhPSbtSsJRdfT0lGYmuXoZTTYD20ZBcEB9Rb81_qbfVwUp/pub?output=csv",
         
         // Your Google Apps Script URL
         SUBMISSION_ENDPOINT: "https://script.google.com/macros/s/AKfycbxI8KyZQSuUsUtzZgQT71_JHCPnqcTs7jomfrK4-bW2JLlxWuOEWRZMA9AB3MdQm3K3/exec",
@@ -530,7 +533,8 @@
         console.log("UHAS Hostel Audit App initialized");
         
         // Set today's date
-        document.getElementById('auditDate').valueAsDate = new Date();
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('auditDate').value = today;
         
         // Setup UI
         generateRoomButtons();
@@ -546,7 +550,6 @@
         // Monitor network status
         window.addEventListener('online', function() {
             updateOnlineStatus();
-            // Auto-reload when coming online if database is empty
             if (studentDatabase.length === 0) {
                 loadStudentDatabase();
             }
@@ -559,16 +562,19 @@
         
         // Add refresh button
         createRefreshButton();
+        
+        // Add troubleshooting info
+        addTroubleshootingInfo();
     });
     
-    // ============== GOOGLE SHEETS LOADING ==============
+    // ============== GOOGLE SHEETS LOADING WITH CORS PROXY ==============
     async function loadStudentDatabase() {
-        showLoading('Loading student database from Google Sheets...');
+        showLoading('Loading student database...');
         updateStatus('Loading...');
         
         try {
-            // Try multiple URL formats
-            const data = await tryMultipleSheetURLs();
+            // Try multiple proxy services
+            const data = await tryWithMultipleProxies();
             
             if (data && data.length > 0) {
                 studentDatabase = data;
@@ -578,15 +584,15 @@
                 localStorage.setItem('uhas_student_db_updated', new Date().toISOString());
                 
                 updateStudentCount();
-                showToast(`✅ Successfully loaded ${studentDatabase.length} students`, 'success');
-                updateStatus(`${studentDatabase.length} students loaded`);
+                showToast(`✅ Loaded ${studentDatabase.length} students`, 'success');
+                updateStatus(`${studentDatabase.length} students`);
                 
             } else {
-                throw new Error("No student data found");
+                throw new Error("No student data loaded");
             }
             
         } catch (error) {
-            console.error('Error loading database:', error);
+            console.error('Database loading error:', error);
             
             // Try loading from localStorage
             const savedData = localStorage.getItem('uhas_student_db');
@@ -597,12 +603,13 @@
                 updateStudentCount();
                 updateStatus(`${studentDatabase.length} students (cached)`);
             } else {
-                showToast('❌ Failed to load student database', 'error');
-                updateStatus('Connection failed');
+                // No data available
+                showToast('⚠️ Could not load database. Check internet connection.', 'warning');
+                updateStatus('No database loaded');
                 document.getElementById('studentCount').innerHTML = 
-                    `<span style="color: var(--danger);">
+                    `<span style="color: var(--warning);">
                         <i class="fas fa-exclamation-triangle"></i> 
-                        Database connection failed. Check internet and reload.
+                        Database not loaded. Tap refresh button.
                     </span>`;
             }
         } finally {
@@ -610,90 +617,109 @@
         }
     }
     
-    async function tryMultipleSheetURLs() {
-        // Try different URL formats
-        const urlFormats = [
-            CONFIG.STUDENT_DB_SHEET,
-            "https://docs.google.com/spreadsheets/d/e/2PACX-1vR3p0bgZVcN9uW2Pk-kmWPTAdUDUTXrGYqhPSbtSsJRdfT0lGYmuXoZTTYD20ZBcEB9Rb81_qbfVwUp/pub?gid=0&single=true&output=csv",
-            "https://docs.google.com/spreadsheets/d/1gffuZSDnqPSZTQdwYe7Ee4mONQIrKh_sdHDjXWaZEyM/export?format=csv&gid=0",
-            `https://corsproxy.io/?${encodeURIComponent("https://docs.google.com/spreadsheets/d/1gffuZSDnqPSZTQdwYe7Ee4mONQIrKh_sdHDjXWaZEyM/export?format=csv")}`
+    async function tryWithMultipleProxies() {
+        const SHEET_ID = "2PACX-1vR3p0bgZVcN9uW2Pk-kmWPTAdUDUTXrGYqhPSbtSsJRdfT0lGYmuXoZTTYD20ZBcEB9Rb81_qbfVwUp";
+        const sheetUrl = `https://docs.google.com/spreadsheets/d/e/${SHEET_ID}/pub?output=csv`;
+        
+        // Try different CORS proxy services
+        const proxyServices = [
+            `https://api.allorigins.win/raw?url=${encodeURIComponent(sheetUrl)}`,
+            `https://corsproxy.io/?${encodeURIComponent(sheetUrl)}`,
+            `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(sheetUrl)}`,
+            `https://cors-anywhere.herokuapp.com/${sheetUrl}`,
+            `https://thingproxy.freeboard.io/fetch/${sheetUrl}`,
+            sheetUrl // Try direct as last resort
         ];
         
-        for (let url of urlFormats) {
+        for (let proxyUrl of proxyServices) {
             try {
-                console.log(`Trying URL: ${url}`);
-                const response = await fetch(url + "&_=" + Date.now());
+                console.log(`Trying proxy: ${proxyUrl.substring(0, 80)}...`);
+                const response = await fetch(proxyUrl + "&_=" + Date.now(), {
+                    headers: {
+                        'Accept': 'text/csv',
+                        'Cache-Control': 'no-cache'
+                    }
+                });
                 
                 if (response.ok) {
                     const csvText = await response.text();
-                    const data = parseCSVData(csvText);
                     
-                    if (data.length > 0) {
-                        console.log(`✅ Success with URL format: ${url.substring(0, 80)}...`);
-                        CONFIG.STUDENT_DB_SHEET = url; // Update config with working URL
-                        return data;
+                    if (csvText && csvText.length > 10) { // Valid CSV check
+                        const data = parseCSVData(csvText);
+                        
+                        if (data.length > 0) {
+                            console.log(`✅ Success with proxy! Loaded ${data.length} students`);
+                            CONFIG.STUDENT_DB_SHEET = proxyUrl; // Update config
+                            return data;
+                        }
                     }
                 }
             } catch (error) {
-                console.log(`Failed with URL: ${error.message}`);
+                console.log(`Proxy failed: ${error.message}`);
                 continue;
             }
         }
         
-        throw new Error("All URL formats failed");
+        throw new Error("All proxy services failed");
     }
     
     function parseCSVData(csvText) {
         const database = [];
-        const lines = csvText.split('\n').filter(line => line.trim() !== '');
         
-        if (lines.length < 2) {
-            console.warn("CSV has no data rows");
-            return database;
-        }
-        
-        // Parse headers (case insensitive)
-        const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
-        console.log("CSV Headers found:", headers);
-        
-        // Parse data rows
-        for (let i = 1; i < lines.length; i++) {
-            try {
-                const row = lines[i];
-                const values = parseCSVRow(row);
-                
-                if (values.length > 0) {
-                    const student = {};
-                    
-                    // Map values to headers
-                    headers.forEach((header, index) => {
-                        if (values[index] !== undefined) {
-                            student[header] = values[index].trim();
-                        }
-                    });
-                    
-                    // Extract student data with flexible field names
-                    const studentData = {
-                        id: student.id || student['student id'] || student['index number'] || student['index'] || '',
-                        name: student.name || student['student name'] || student['full name'] || student['student'] || '',
-                        level: student.level || student['student level'] || student['class'] || student['year'] || '',
-                        programme: student.programme || student['student programme'] || student['course'] || student['department'] || 'Medicine'
-                    };
-                    
-                    // Only add if we have both ID and Name
-                    if (studentData.id && studentData.name && 
-                        studentData.id.trim() !== '' && 
-                        studentData.name.trim() !== '') {
-                        database.push(studentData);
-                    }
-                }
-            } catch (error) {
-                console.warn(`Error parsing row ${i + 1}:`, error);
-                continue;
+        try {
+            const lines = csvText.split('\n').filter(line => line.trim() !== '');
+            
+            if (lines.length < 2) {
+                console.warn("CSV has no data rows");
+                return database;
             }
+            
+            // Parse headers
+            const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+            
+            // Parse data rows
+            for (let i = 1; i < lines.length; i++) {
+                try {
+                    const row = lines[i];
+                    const values = parseCSVRow(row);
+                    
+                    if (values.length >= headers.length) {
+                        const student = {};
+                        
+                        // Map headers to values
+                        headers.forEach((header, index) => {
+                            if (values[index] !== undefined) {
+                                student[header] = values[index].trim();
+                            }
+                        });
+                        
+                        // Extract student data with flexible field names
+                        const studentData = {
+                            id: student.id || student['student id'] || student['index number'] || student['index'] || '',
+                            name: student.name || student['student name'] || student['full name'] || student['student'] || '',
+                            level: student.level || student['student level'] || student['class'] || student['year'] || '',
+                            programme: student.programme || student['student programme'] || student['course'] || student['department'] || 'Medicine'
+                        };
+                        
+                        // Only add if we have both ID and Name
+                        if (studentData.id && studentData.name && 
+                            studentData.id.trim() !== '' && 
+                            studentData.name.trim() !== '') {
+                            database.push(studentData);
+                        }
+                    }
+                } catch (error) {
+                    console.warn(`Skipping row ${i + 1}:`, error);
+                    continue;
+                }
+            }
+            
+            console.log(`Parsed ${database.length} valid student records`);
+            
+        } catch (error) {
+            console.error('CSV parsing error:', error);
         }
         
-        console.log(`Parsed ${database.length} valid student records`);
         return database;
     }
     
@@ -752,17 +778,12 @@
             return idMatch || nameMatch;
         });
         
-        // Sort results: exact matches first, then by level
+        // Sort results
         results.sort((a, b) => {
             const aIdExact = a.id.toLowerCase() === searchTerm;
             const bIdExact = b.id.toLowerCase() === searchTerm;
             if (aIdExact && !bIdExact) return -1;
             if (!aIdExact && bIdExact) return 1;
-            
-            const aStartsWith = a.id.toLowerCase().startsWith(searchTerm);
-            const bStartsWith = b.id.toLowerCase().startsWith(searchTerm);
-            if (aStartsWith && !bStartsWith) return -1;
-            if (!aStartsWith && bStartsWith) return 1;
             
             return parseInt(a.level) - parseInt(b.level);
         });
@@ -790,8 +811,7 @@
         resultsDiv.style.display = 'block';
         
         // Add click handlers
-        const items = resultsDiv.querySelectorAll('.search-item');
-        items.forEach(item => {
+        document.querySelectorAll('.search-item').forEach(item => {
             item.addEventListener('click', function() {
                 const studentId = this.dataset.id;
                 const student = studentDatabase.find(s => s.id === studentId);
@@ -828,10 +848,6 @@
                 showToast('✅ Record submitted successfully!', 'success');
                 clearForm();
                 saveExecutiveInfo();
-                
-                // Log successful submission
-                logSubmission(formData, true);
-                
             } else {
                 throw new Error(response?.error || 'Submission failed');
             }
@@ -842,9 +858,6 @@
             // Save locally for offline submission
             savePendingSubmission(formData);
             showToast('📱 Saved offline. Will submit when online.', 'warning');
-            
-            // Log failed submission
-            logSubmission(formData, false);
             
         } finally {
             hideLoading();
@@ -857,20 +870,16 @@
         try {
             const response = await fetch(scriptUrl, {
                 method: 'POST',
+                mode: 'no-cors', // Use no-cors for cross-origin requests
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(formData)
             });
             
-            // Try to parse response
-            const text = await response.text();
-            try {
-                return JSON.parse(text);
-            } catch (e) {
-                // If not JSON, assume success
-                return { success: true, message: 'Submitted successfully' };
-            }
+            // With no-cors mode, we can't read the response
+            // Assume success if fetch doesn't throw error
+            return { success: true, message: 'Submitted successfully' };
             
         } catch (error) {
             console.error('Fetch error:', error);
@@ -889,30 +898,10 @@
             status: 'pending'
         });
         
-        // Keep only last 50 pending submissions
-        const trimmedPending = pending.slice(-50);
-        localStorage.setItem('uhas_pending', JSON.stringify(trimmedPending));
-        
+        localStorage.setItem('uhas_pending', JSON.stringify(pending));
         updatePendingCount();
         
         console.log(`Saved pending submission ID: ${submissionId}`);
-    }
-    
-    function logSubmission(formData, success) {
-        const logs = JSON.parse(localStorage.getItem('uhas_submission_logs') || '[]');
-        
-        logs.push({
-            timestamp: new Date().toISOString(),
-            studentId: formData.studentID,
-            studentName: formData.studentName,
-            executiveName: formData.executiveName,
-            success: success,
-            offline: !navigator.onLine
-        });
-        
-        // Keep only last 100 logs
-        const trimmedLogs = logs.slice(-100);
-        localStorage.setItem('uhas_submission_logs', JSON.stringify(trimmedLogs));
     }
     
     // ============== EVENT HANDLERS ==============
@@ -920,20 +909,17 @@
         // Block selection
         document.querySelectorAll('.block-btn').forEach(btn => {
             btn.addEventListener('click', function() {
-                // Remove selection from all blocks
                 document.querySelectorAll('.block-btn').forEach(b => {
                     b.classList.remove('selected');
                 });
                 
-                // Select clicked block
                 this.classList.add('selected');
                 selectedBlock = this.dataset.block;
                 
                 // Show room selection
-                const roomSection = document.getElementById('roomSection');
-                roomSection.classList.add('active');
+                document.getElementById('roomSection').classList.add('active');
                 
-                // Clear previous room selection
+                // Clear room selection
                 selectedRoom = "";
                 document.querySelectorAll('.room-btn').forEach(r => {
                     r.classList.remove('selected');
@@ -944,15 +930,12 @@
         });
         
         // Room selection
-        const roomsGrid = document.getElementById('roomsGrid');
-        roomsGrid.addEventListener('click', function(e) {
+        document.getElementById('roomsGrid').addEventListener('click', function(e) {
             if (e.target.classList.contains('room-btn')) {
-                // Remove selection from all rooms
                 document.querySelectorAll('.room-btn').forEach(r => {
                     r.classList.remove('selected');
                 });
                 
-                // Select clicked room
                 e.target.classList.add('selected');
                 selectedRoom = e.target.dataset.room;
                 
@@ -980,7 +963,7 @@
                 notes: document.getElementById('notes').value.trim() || '',
                 submissionTime: new Date().toISOString(),
                 deviceInfo: navigator.userAgent,
-                appVersion: '1.0.0'
+                appVersion: '2.0'
             };
             
             await submitToGoogleSheets(formData);
@@ -991,38 +974,26 @@
     }
     
     function validateForm() {
-        // Validate student selection
         if (!selectedStudent) {
             showToast('Please select a student first', 'error');
-            document.getElementById('studentSearch').focus();
             return false;
         }
         
-        // Validate block selection
         if (!selectedBlock) {
             showToast('Please select a hostel block', 'error');
             return false;
         }
         
-        // Validate room selection
         if (!selectedRoom) {
             showToast('Please select a room number', 'error');
             return false;
         }
         
-        // Validate executive details
         const execName = document.getElementById('executiveName').value.trim();
         const execID = document.getElementById('executiveID').value.trim();
         
-        if (!execName) {
-            showToast('Please enter your name', 'error');
-            document.getElementById('executiveName').focus();
-            return false;
-        }
-        
-        if (!execID) {
-            showToast('Please enter your executive ID', 'error');
-            document.getElementById('executiveID').focus();
+        if (!execName || !execID) {
+            showToast('Please fill in your executive details', 'error');
             return false;
         }
         
@@ -1035,23 +1006,20 @@
         selectedBlock = "";
         selectedRoom = "";
         
-        // Clear search and student info
         document.getElementById('studentSearch').value = '';
         document.getElementById('studentInfo').style.display = 'none';
         
-        // Hide room section
         document.getElementById('roomSection').classList.remove('active');
         
-        // Clear selections
         document.querySelectorAll('.block-btn').forEach(b => b.classList.remove('selected'));
         document.querySelectorAll('.room-btn').forEach(b => b.classList.remove('selected'));
         
-        // Clear form fields
         document.getElementById('bedSpace').value = '';
         document.getElementById('notes').value = '';
         
         // Keep executive info and date
-        document.getElementById('auditDate').valueAsDate = new Date();
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('auditDate').value = today;
         
         showToast('Form cleared', 'info');
     }
@@ -1102,17 +1070,15 @@
         
         for (const submission of pending) {
             try {
-                // Remove metadata before sending
                 const { id, timestamp, status, ...formData } = submission;
                 await submitViaGoogleAppsScript(formData);
-                console.log(`Successfully synced pending submission: ${id}`);
+                console.log(`Synced pending submission: ${id}`);
             } catch (error) {
-                console.error('Failed to sync submission:', error);
+                console.error('Failed to sync:', error);
                 failed.push(submission);
             }
         }
         
-        // Update pending list
         localStorage.setItem('uhas_pending', JSON.stringify(failed));
         
         if (failed.length === 0) {
@@ -1130,15 +1096,13 @@
         
         if (pending.length > 0 && statusText && navigator.onLine) {
             statusText.textContent = `Online (${pending.length} pending)`;
-        } else if (statusText && navigator.onLine) {
-            statusText.textContent = 'Online';
         }
     }
     
     function updateStudentCount() {
         const count = studentDatabase.length;
         const lastUpdated = localStorage.getItem('uhas_student_db_updated');
-        const date = lastUpdated ? new Date(lastUpdated).toLocaleString() : 'Never';
+        const date = lastUpdated ? new Date(lastUpdated).toLocaleDateString() : 'Never';
         
         document.getElementById('studentCount').innerHTML = 
             `<strong>${count}</strong> students loaded<br>
@@ -1156,11 +1120,8 @@
     }
     
     function saveExecutiveInfo() {
-        const execName = document.getElementById('executiveName').value.trim();
-        const execID = document.getElementById('executiveID').value.trim();
-        
-        if (execName) localStorage.setItem('uhas_exec_name', execName);
-        if (execID) localStorage.setItem('uhas_exec_id', execID);
+        localStorage.setItem('uhas_exec_name', document.getElementById('executiveName').value);
+        localStorage.setItem('uhas_exec_id', document.getElementById('executiveID').value);
     }
     
     function showLoading(text) {
@@ -1177,7 +1138,6 @@
         toast.textContent = message;
         toast.className = 'toast';
         
-        // Set color based on type
         switch(type) {
             case 'success': 
                 toast.style.background = 'var(--accent)'; 
@@ -1194,7 +1154,6 @@
         
         toast.classList.add('show');
         
-        // Auto-hide after 3 seconds
         setTimeout(() => {
             toast.classList.remove('show');
         }, 3000);
@@ -1232,6 +1191,46 @@
         };
         
         document.body.appendChild(refreshBtn);
+    }
+    
+    function addTroubleshootingInfo() {
+        const troubleshooting = document.createElement('div');
+        troubleshooting.style.cssText = `
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            background: var(--warning);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 12px;
+            max-width: 250px;
+            display: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            z-index: 99;
+        `;
+        
+        troubleshooting.innerHTML = `
+            <strong><i class="fas fa-info-circle"></i> If database doesn't load:</strong>
+            <ul style="margin: 5px 0 0 15px; padding: 0;">
+                <li>Tap refresh button</li>
+                <li>Check internet connection</li>
+                <li>Wait a few seconds</li>
+                <li>Try closing/reopening app</li>
+            </ul>
+        `;
+        
+        document.body.appendChild(troubleshooting);
+        
+        // Show troubleshooting after 10 seconds if no data loaded
+        setTimeout(() => {
+            if (studentDatabase.length === 0) {
+                troubleshooting.style.display = 'block';
+                setTimeout(() => {
+                    troubleshooting.style.display = 'none';
+                }, 10000);
+            }
+        }, 10000);
     }
     
     // Export functions for button onclick
