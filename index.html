@@ -1,266 +1,1690 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>UHAS Medical Students Residential Data</title>
-
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-<style>
-:root {
-  --primary:#1a5fb4;
-  --secondary:#1c71d8;
-  --accent:#2ec27e;
-  --danger:#c9190b;
-  --warning:#e5a50a;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-body{
-  font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
-  background:#f5f7fa;
-  max-width:800px;
-  margin:auto;
-  padding:15px;
-}
-.app-container{
-  background:#fff;
-  border-radius:15px;
-  box-shadow:0 5px 20px rgba(0,0,0,.1);
-  overflow:hidden;
-  min-height:100vh;
-}
-.app-header{
-  background:linear-gradient(135deg,var(--primary),var(--secondary));
-  color:#fff;
-  padding:25px;
-  text-align:center;
-}
-h1{font-size:22px}
-.subtitle{font-size:13px;opacity:.9}
-.sync-status{
-  position:absolute;top:15px;right:15px;
-  background:#fff;padding:6px 12px;
-  border-radius:20px;font-size:12px;
-  display:flex;align-items:center;gap:6px;
-}
-.sync-status.online{border:1px solid var(--accent);color:var(--accent)}
-.sync-status.offline{border:1px solid var(--warning);color:var(--warning)}
-.form-container{padding:20px}
-.section{margin-bottom:25px;border-bottom:2px solid #eee;padding-bottom:15px}
-.section-title{color:var(--primary);font-size:16px;margin-bottom:15px}
-.form-group{margin-bottom:15px}
-label{font-weight:600;font-size:14px;margin-bottom:6px;display:block}
-input,select,textarea{
-  width:100%;padding:12px;border-radius:8px;
-  border:2px solid #e0e0e0;font-size:15px
-}
-input:focus,select:focus,textarea:focus{
-  outline:none;border-color:var(--primary)
-}
-.search-results{
-  position:absolute;background:#fff;
-  border:2px solid var(--primary);
-  border-radius:8px;max-height:200px;
-  overflow:auto;display:none;z-index:100
-}
-.search-item{padding:10px;border-bottom:1px solid #eee;cursor:pointer}
-.search-item:hover{background:#f5f9ff}
-.student-info{display:none;background:#f8fafc;padding:15px;border-radius:8px}
-.blocks-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-.block-btn{
-  padding:14px;border:2px solid #ddd;
-  border-radius:8px;text-align:center;
-  cursor:pointer;font-weight:600
-}
-.block-btn.selected{
-  background:#f0f7ff;border-color:var(--primary);color:var(--primary)
-}
-.rooms-grid{
-  display:grid;grid-template-columns:repeat(5,1fr);
-  gap:8px;background:#f9f9f9;
-  padding:10px;border-radius:8px
-}
-.room-btn{
-  padding:10px;border:1px solid #ccc;
-  border-radius:6px;text-align:center;
-  cursor:pointer
-}
-.room-btn.selected{
-  background:var(--primary);color:#fff;border-color:var(--primary)
-}
-.action-buttons{display:grid;gap:10px;margin-top:25px}
-.btn{
-  padding:15px;border:none;border-radius:10px;
-  font-size:15px;font-weight:600;cursor:pointer
-}
-.btn-primary{background:var(--primary);color:#fff}
-.btn-secondary{background:#eee}
-.toast{
-  position:fixed;bottom:20px;left:50%;
-  transform:translateX(-50%) translateY(100px);
-  background:var(--primary);color:#fff;
-  padding:14px 20px;border-radius:8px;
-  transition:.3s;z-index:1000
-}
-.toast.show{transform:translateX(-50%) translateY(0)}
-.loading{
-  position:fixed;inset:0;background:rgba(255,255,255,.9);
-  display:none;align-items:center;justify-content:center;
-  flex-direction:column;z-index:1000
-}
-.loading-spinner{
-  width:40px;height:40px;border:4px solid #eee;
-  border-top:4px solid var(--primary);
-  border-radius:50%;animation:spin 1s linear infinite
-}
-@keyframes spin{to{transform:rotate(360deg)}}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UHAS Medical Students Residential Data</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #1a5fb4;
+            --secondary: #1c71d8;
+            --accent: #2ec27e;
+            --danger: #c9190b;
+            --warning: #e5a50a;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            padding: 15px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .app-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+            position: relative;
+            min-height: 100vh;
+        }
+        
+        /* Header */
+        .app-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 25px 20px;
+            text-align: center;
+        }
+        
+        .logo {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+        
+        h1 {
+            font-size: 22px;
+            margin-bottom: 8px;
+        }
+        
+        .subtitle {
+            opacity: 0.9;
+            font-size: 13px;
+        }
+        
+        /* Sync Status */
+        .sync-status {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .sync-status.online {
+            color: var(--accent);
+            border: 1px solid var(--accent);
+        }
+        
+        .sync-status.offline {
+            color: var(--warning);
+            border: 1px solid var(--warning);
+        }
+        
+        /* Form */
+        .form-container {
+            padding: 20px;
+        }
+        
+        .section {
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .section-title {
+            color: var(--primary);
+            font-size: 16px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #444;
+            font-size: 14px;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--primary);
+            outline: none;
+        }
+        
+        /* Student Search */
+        .search-container {
+            position: relative;
+        }
+        
+        .search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid var(--primary);
+            border-radius: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 100;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            display: none;
+        }
+        
+        .search-item {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+        }
+        
+        .search-item:hover {
+            background: #f5f9ff;
+        }
+        
+        .student-info {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: none;
+        }
+        
+        /* Block & Room Selection */
+        .blocks-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .block-btn {
+            padding: 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            background: white;
+            font-weight: 600;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .block-btn.selected {
+            border-color: var(--primary);
+            background: #f0f7ff;
+            color: var(--primary);
+        }
+        
+        .rooms-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            max-height: 250px;
+            overflow-y: auto;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+        
+        .room-btn {
+            padding: 10px 6px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background: white;
+            text-align: center;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        
+        .room-btn:hover {
+            background: #f0f7ff;
+            border-color: var(--primary);
+        }
+        
+        .room-btn.selected {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        /* Room section container */
+        .room-section {
+            display: none;
+        }
+        
+        .room-section.active {
+            display: block;
+        }
+        
+        /* Buttons */
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 25px;
+        }
+        
+        .btn {
+            padding: 16px;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:active {
+            background: #154c8c;
+            transform: translateY(2px);
+        }
+        
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+        
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--accent);
+            color: white;
+            padding: 14px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
+            transition: transform 0.3s;
+            max-width: 90%;
+            text-align: center;
+        }
+        
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+        
+        /* Loading */
+        .loading {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255,255,255,0.9);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Instructions */
+        .instructions {
+            background: #fff9e6;
+            border-left: 4px solid var(--warning);
+            padding: 12px;
+            margin-bottom: 15px;
+            border-radius: 0 8px 8px 0;
+            font-size: 13px;
+        }
+        
+        @media (max-width: 768px) {
+            .blocks-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .rooms-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            
+            .action-buttons {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .rooms-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+    </style>
 </head>
-
 <body>
-<div class="app-container">
+    <div class="app-container">
+        <!-- Sync Status -->
+        <div class="sync-status" id="syncStatus">
+            <i class="fas fa-sync"></i>
+            <span id="statusText">Loading...</span>
+        </div>
+        
+        <!-- Header -->
+        <div class="app-header">
+            <div class="logo">🏥</div>
+            <h1>UHAS ASOGLI HALL</h1>
+            <p class="subtitle">Medical Students Residential Data Collection</p>
+        </div>
+        
+        <!-- Instructions -->
+        <div class="instructions">
+            <strong><i class="fas fa-info-circle"></i> INSTRUCTIONS:</strong> 
+            1. Search student by ID/Name → 2. Select block → room → bed → 3. Submit
+        </div>
+        
+        <!-- Loading Overlay -->
+        <div class="loading" id="loading">
+            <div class="loading-spinner"></div>
+            <div id="loadingText">Loading student database...</div>
+        </div>
+        
+        <!-- Main Form -->
+        <div class="form-container">
+            <form id="auditForm">
+                <!-- Executive Section -->
+                <div class="section">
+                    <h2 class="section-title"><i class="fas fa-user-tie"></i> Executive Details</h2>
+                    
+                    <div class="form-group">
+                        <label for="executiveName">Your Name *</label>
+                        <input type="text" id="executiveName" required placeholder="Enter your full name">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="executiveID">Executive ID *</label>
+                        <input type="text" id="executiveID" required placeholder="Your ID number">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="auditDate">Audit Date *</label>
+                        <input type="date" id="auditDate" required>
+                    </div>
+                </div>
+                
+                <!-- Student Search -->
+                <div class="section">
+                    <h2 class="section-title"><i class="fas fa-search"></i> Find Student</h2>
+                    
+                    <div class="form-group">
+                        <label>Search Student (ID or Name) *</label>
+                        <div class="search-container">
+                            <input type="text" id="studentSearch" required 
+                                   placeholder="Enter index number or name" autocomplete="off">
+                            <div class="search-results" id="searchResults"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Student Info Display -->
+                    <div class="student-info" id="studentInfo">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <div>
+                                <label>Student ID</label>
+                                <input type="text" id="studentID" readonly>
+                            </div>
+                            <div>
+                                <label>Full Name</label>
+                                <input type="text" id="studentName" readonly>
+                            </div>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+                            <div>
+                                <label>Level</label>
+                                <input type="text" id="studentLevel" readonly>
+                            </div>
+                            <div>
+                                <label>Programme</label>
+                                <input type="text" id="studentProgramme" readonly>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Hostel Details -->
+                <div class="section">
+                    <h2 class="section-title"><i class="fas fa-bed"></i> Hostel Assignment</h2>
+                    
+                    <div class="form-group">
+                        <label>Select Hostel Block *</label>
+                        <div class="blocks-grid">
+                            <div class="block-btn" data-block="DOME">DOME</div>
+                            <div class="block-btn" data-block="HLIHA">HLIHA</div>
+                            <div class="block-btn" data-block="BANKOE">BANKOE</div>
+                            <div class="block-btn" data-block="AHOE">AHOE</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Room Selection -->
+                    <div class="form-group room-section" id="roomSection">
+                        <label>Select Room Number (1-40) *</label>
+                        <div class="rooms-grid" id="roomsGrid"></div>
+                    </div>
+                    
+                    <!-- Bed Selection -->
+                    <div class="form-group">
+                        <label for="bedSpace">Bed Space</label>
+                        <select id="bedSpace">
+                            <option value="">Select Bed</option>
+                            <option value="Bed 1">Bed 1</option>
+                            <option value="Bed 2">Bed 2</option>
+                            <option value="Bed 3">Bed 3</option>
+                            <option value="Bed 4">Bed 4</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Notes -->
+                    <div class="form-group">
+                        <label for="notes">Notes / Observations</label>
+                        <textarea id="notes" rows="2" placeholder="Any remarks..."></textarea>
+                    </div>
+                </div>
+                
+                <!-- Submit Buttons -->
+                <div class="action-buttons">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i> Submit Record
+                    </button>
+                    <button type="button" class="btn btn-secondary" id="clearBtn">
+                        <i class="fas fa-redo"></i> Clear Form
+                    </button>
+                </div>
+            </form>
+            
+            <!-- App Info -->
+            <div style="text-align: center; margin-top: 30px; font-size: 12px; color: #666;">
+                <p><i class="fas fa-database"></i> UHAS Student Database</p>
+                <p id="studentCount">Loading student count...</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Toast Notification -->
+    <div class="toast" id="toast"></div>
 
-<div class="sync-status online" id="syncStatus">
-<i class="fas fa-wifi"></i><span id="statusText">Loading…</span>
-</div>
-
-<div class="app-header">
-<h1>UHAS ASOGLI HALL</h1>
-<p class="subtitle">Medical Students Residential Data</p>
-</div>
-
-<div class="form-container">
-<form id="auditForm">
-
-<div class="section">
-<h2 class="section-title">Executive Details</h2>
-<div class="form-group">
-<label>Your Name</label>
-<input id="executiveName" required>
-</div>
-<div class="form-group">
-<label>Executive ID</label>
-<input id="executiveID" required>
-</div>
-<div class="form-group">
-<label>Date</label>
-<input type="date" id="auditDate" required>
-</div>
-</div>
-
-<div class="section">
-<h2 class="section-title">Find Student</h2>
-<div class="form-group" style="position:relative">
-<input id="studentSearch" placeholder="Search by ID or Name">
-<div class="search-results" id="searchResults"></div>
-</div>
-<div class="student-info" id="studentInfo">
-<input id="studentID" readonly>
-<input id="studentName" readonly>
-<input id="studentLevel" readonly>
-<input id="studentProgramme" readonly>
-</div>
-</div>
-
-<div class="section">
-<h2 class="section-title">Hostel Assignment</h2>
-<div class="blocks-grid">
-<div class="block-btn" data-block="DOME">DOME</div>
-<div class="block-btn" data-block="HLIHA">HLIHA</div>
-<div class="block-btn" data-block="BANKOE">BANKOE</div>
-<div class="block-btn" data-block="AHOE">AHOE</div>
-</div>
-<div class="rooms-grid" id="roomsGrid"></div>
-</div>
-
-<div class="action-buttons">
-<button class="btn btn-primary" type="submit">Submit</button>
-<button class="btn btn-secondary" type="button" id="clearBtn">Clear</button>
-</div>
-
-</form>
-
-<p id="studentCount" style="text-align:center;margin-top:20px;font-size:12px"></p>
-</div>
-</div>
-
-<div class="toast" id="toast"></div>
-<div class="loading" id="loading">
-<div class="loading-spinner"></div>
-<p>Loading student database…</p>
-</div>
-
-<script>
-const APPS_SCRIPT_URL =
-"https://script.google.com/macros/s/AKfycbxiaRFpcRZPmZ6EGeSv4GqSvgoQgcP_pQAsI-Ox2zI8AlAuzyQf7f59PbfOfZIo7ujYHg/exec";
-
-let studentDatabase=[],selectedStudent=null,selectedBlock="",selectedRoom="";
-
-document.addEventListener("DOMContentLoaded",()=>{
-  document.getElementById("auditDate").value=new Date().toISOString().split("T")[0];
-  generateRooms();
-  loadStudents();
-});
-
-async function loadStudents(){
-  document.getElementById("loading").style.display="flex";
-  try{
-    const res=await fetch(APPS_SCRIPT_URL,{cache:"no-store"});
-    const csv=await res.text();
-    studentDatabase=parseCSV(csv);
-    localStorage.setItem("students",JSON.stringify(studentDatabase));
-    document.getElementById("studentCount").innerHTML=
-      `<strong>${studentDatabase.length}</strong> students loaded`;
-    showToast("Database loaded","success");
-  }catch{
-    const cache=localStorage.getItem("students");
-    if(cache){
-      studentDatabase=JSON.parse(cache);
-      showToast("Loaded cached database","warning");
-    }else{
-      showToast("Database failed to load","error");
-    }
-  }
-  document.getElementById("loading").style.display="none";
-}
-
-function parseCSV(text){
-  const [h,...rows]=text.split("\n").filter(Boolean);
-  const headers=h.split(",").map(x=>x.toLowerCase());
-  return rows.map(r=>{
-    const v=r.split(",");
-    const s={};
-    headers.forEach((h,i)=>s[h]=v[i]?.trim());
-    return {
-      id:s.id||s["student id"]||"",
-      name:s.name||s["student name"]||"",
-      level:s.level||"",
-      programme:s.programme||"Medicine"
+    <script>
+    // ============== CONFIGURATION ==============
+    const CONFIG = {
+        // Your Google Apps Script URL for submissions only
+        SUBMISSION_ENDPOINT: "https://script.google.com/macros/s/AKfycbxI8KyZQSuUsUtzZgQT71_JHCPnqcTs7jomfrK4-bW2JLlxWuOEWRZMA9AB3MdQm3K3/exec",
+        ADMIN_EMAIL: "sewormnyuielove@gmail.com"
     };
-  }).filter(s=>s.id&&s.name);
-}
-
-function generateRooms(){
-  const g=document.getElementById("roomsGrid");
-  for(let i=1;i<=40;i++){
-    const d=document.createElement("div");
-    d.className="room-btn";
-    d.textContent=i;
-    d.onclick=()=>{selectedRoom=i;};
-    g.appendChild(d);
-  }
-}
-
-function showToast(msg,type){
-  const t=document.getElementById("toast");
-  t.textContent=msg;
-  t.style.background=
-    type==="success"?"var(--accent)":
-    type==="error"?"var(--danger)":"var(--warning)";
-  t.classList.add("show");
-  setTimeout(()=>t.classList.remove("show"),3000);
-}
+    
+    // ============== EMBEDDED STUDENT DATABASE ==============
+           // Level 600 Students
+        const students = [
+  { LEVEL: "600", Index_Number: "UHAS20200293", Full_Name: "GADZEY  BENJAMIN  BLESS", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20200389", Full_Name: "KISSI  EMMANUEL", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20200609", Full_Name: "ANYORMISI ELIZABETH", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20200685", Full_Name: "EMMANUEL AHENFUL", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20201101", Full_Name: "ODURO HEAVELYN AMMA FAA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20201351", Full_Name: "AKALBEO SAMUEL AYINBILA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20201371", Full_Name: "UNINKPEL  SAMPSON    NILIGNAN", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20201441", Full_Name: "COFIE ANNE", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20201889", Full_Name: "KUETSIDZO KENNETH KEKELI", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20201919", Full_Name: "OFORI HANS", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20202172", Full_Name: "AKUFFO KAREN NHYIRA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20202187", Full_Name: "AGBALE MAGAVA KOFI", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20202808", Full_Name: "FRIMPOMAA BOAKYE-YIADOM", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20202992", Full_Name: "DZOGBEDE  PRECIOUS", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20203225", Full_Name: "SARKODIE ROSELINE ADOMA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20203397", Full_Name: "OPOKU-ACQUAH KOFI AHIMAH", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20203469", Full_Name: "APEDO AMANDA FAFALI AKU", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20203489", Full_Name: "PORTUPHY-LAMPTEY NII ODARTEY", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20203520", Full_Name: "BOARIE KINGSLEY SHEBAZAZOR", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20203646", Full_Name: "AMETAME LUCKY FAFA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20203663", Full_Name: "DONGDEM MAXIMILIAN BARIKA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20203678", Full_Name: "ENOCH KWAKU ADJAHO", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20203929", Full_Name: "ARMAH GWENDOLYN  NAANA EGYEFI", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20204011", Full_Name: "ANUM-LARYEA MERVEILLE ADJIN", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20204019", Full_Name: "SOGBE RACHEL AKOSUA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20204158", Full_Name: "FOSU FRANK", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20204200", Full_Name: "DZIVENU JULIET ENYONAM", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20204230", Full_Name: "KWAO JOEL KWAME", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20204432", Full_Name: "QUANSAH ALEXANDER KOFI", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20204439", Full_Name: "AGYENIM BOATENG NANA YAA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20204468", Full_Name: "HUSSEIN PEARL ESI DEMAWU", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20204549", Full_Name: "DAKEY GIDEON ELIKEM", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20204656", Full_Name: "KANDA MOYA YAAYA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20204670", Full_Name: "FRIMPONG KWABENA AGYEN", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20204896", Full_Name: "GYAMERAH MICHAEL SARFO", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20205111", Full_Name: "ADDO ANIMA AYISI", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20205152", Full_Name: "ISMAIL KHADIJAH", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20205297", Full_Name: "ANKOMAH MAAME SERWAH  AMA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20205298", Full_Name: "ARTHUR KENNETH", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20220063", Full_Name: "AMOABENG ISAAC", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20220546", Full_Name: "AMEGAVLUIE STEPHANIE FAFALI AFI", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS201910418", Full_Name: "MENSAH YAA KORANTEMA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS201911256", Full_Name: "HONYA SAMUEL BUBUNE", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20205371", Full_Name: "ADAMS SELMA EWURAMA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20205398", Full_Name: "OSEI KENNETH", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20205410", Full_Name: "AUGUSTINA MAWUNYO KELEKU", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20205441", Full_Name: "OBUTEY FRANCIS KOFI", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20205573", Full_Name: "VANESSA TULASI", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20205722", Full_Name: "GYASI-ACHEAMPONG WILLIAM", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20205737", Full_Name: "LOTSU ARNOLD TOKOTTAH", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20205749", Full_Name: "ANAMOAH BERNICE  NANA AMA EDUAWAH", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20205884", Full_Name: "GBEDDIE ELIAN DELASE", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20206026", Full_Name: "AGBOLEGBE JAMES", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20206126", Full_Name: "PATIENCE ODURO", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20206142", Full_Name: "DABI-DANKWAH MARYLYN", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20206188", Full_Name: "SABAKPO COLLINS ELORM", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20206279", Full_Name: "GBANAGLO EDWARD ELORM", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20206302", Full_Name: "OKAI ROSEMOND AMELEY", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20206371", Full_Name: "KAMASA FOSTER", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20206428", Full_Name: "AHIANKUI STEPHEN NYARKOTEY", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20206609", Full_Name: "AMEMASOR DORCAS DELALI", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20206672", Full_Name: "EMMANUELLA ADWUBI BONSU", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20206726", Full_Name: "MAQUESON MAWUKO AFETI", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20206878", Full_Name: "ESSUMAN PRINCE OWURAKU", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20206908", Full_Name: "MICHEAL ETORNAM COFFIE", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20207111", Full_Name: "ESSIBRAH AUDREY ADDO", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20207155", Full_Name: "MAWUSI SEFA ABENA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20207253", Full_Name: "HENRIETTA KOOTSO ASHIE", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20207549", Full_Name: "GELLY FRANK KWADWO GYAMFI", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20207864", Full_Name: "JEMIMAH DOSOO OSORIA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20207877", Full_Name: "MICHAEL OSEI MENSAH", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20207880", Full_Name: "EMMANUELLA ADEI KOTEY", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20207907", Full_Name: "AMANKWAH SAKYI YAW", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20207925", Full_Name: "MENSAH JESSICA AKOS", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20208120", Full_Name: "DOGBE DERRICK YAW", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20208485", Full_Name: "DARKO  LEONARD OFORI", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20208566", Full_Name: "CARDIGAH DANIEL ELIKEM", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20208600", Full_Name: "BOTWE GEORGE  OPARE", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20208676", Full_Name: "SHOOTER ADRIANO REUEL", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20220011", Full_Name: "BOAKYE MICHAEL", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20220198", Full_Name: "MARFO BEMPOMAA ESTHER", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "600", Index_Number: "UHAS20223143", Full_Name: "OSEI NKANSAH GEORGE", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS202110281", Full_Name: "ADDO DOREEN TORPREH", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20218336", Full_Name: "ADJEI MENSAH EBENEZER", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20216166", Full_Name: "ADJEI-MENSAH PERPETUAL NYANTAKYIWAA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20219023", Full_Name: "ADOBOE PRINCESS SELASI ATSUFOE", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20215502", Full_Name: "ADOMAKO PRINCE", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20214021", Full_Name: "ADZIKA PRISCILLA SITSOPE", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20218682", Full_Name: "AGBENYEGAH FELIX  KWASI", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20212551", Full_Name: "AGBODZENKPLE TORGBUI", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS202110298", Full_Name: "AGYEKUM FRANCIS KWAKYE SNR.", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20218613", Full_Name: "AGYEMAN-KORANTENG JEREMY DANQUAH", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS202110301", Full_Name: "AHOMKA- YEBOAH NANA BAFFOE", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20217258", Full_Name: "AKUTTEH GAD JULIAN MENSAH", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20218979", Full_Name: "AKWENSIVIE HENRIETTA YAA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20212303", Full_Name: "ALHASSAN ISHMEAL", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20219745", Full_Name: "AMALINTINGA SILAS WINESAKIYA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20211083", Full_Name: "AMISSAH KELLY", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20217340", Full_Name: "AMOAH OKAILEY MARGARET", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20218121", Full_Name: "AMOAKOHENE FRANCIS XAVIER", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20213162", Full_Name: "AMOATENG ERNEST", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20216978", Full_Name: "ANAZAH BRIGHT", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20216560", Full_Name: "ANTWI KINGSLEY OWUSU", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20216683", Full_Name: "APPIAH RENEE OWUSU ANNOH", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20215382", Full_Name: "ARMAH KEKELI HIADZI", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20215483", Full_Name: "ARTHUR ADU RICHMOND", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS 20214787", Full_Name: "ARMAH OBED", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20217313", Full_Name: "ASAMOAH ESI", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS202110389", Full_Name: "ASAMOAH IVAN YEBOAH", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20214649", Full_Name: "ASANTE FRANK NYAMEYE SENIOR", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20215557", Full_Name: "ASARE ANGELA NYARKOA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS 20211733", Full_Name: "ASIGBEY SEYRAM AMETORXE", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20212251", Full_Name: "ASUBONTENG-BOFFAH JAMES", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20219999", Full_Name: "AWUMEY RICHARD", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20216107", Full_Name: "AYENSU NANA-AMA SEMUAA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20217101", Full_Name: "BADU PROSPER BOANUH", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20216359", Full_Name: "BAIDOO GIDEON", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS202110797", Full_Name: "BASOAH KENNETH AMPONSAH", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20217971", Full_Name: "BIESE-MACARTHY WORLAKO", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20217375", Full_Name: "BOAKYE NADIA MAAME EFUA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS202111040", Full_Name: "BOATENG VALICE GODSTIME", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS202111122", Full_Name: "BOBIE RICHARD MIVA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20219116", Full_Name: "BOSOMPEM JESSICA TWUMWAA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20218484", Full_Name: "BOTWE EDINAME ANGELA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20215785", Full_Name: "BRUCE PROSPER JOSEPH", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20214713", Full_Name: "BUBOAFOR EUGENIA JEMIMA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20210002", Full_Name: "WONDER DOGBEY", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20216221", Full_Name: "DORDOYE SEMEFA ACHEAMPONMAA YAWA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20216277", Full_Name: "DONKOR ENOCH AGYIRI", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20215679", Full_Name: "DONKOR GLORIA OSABEA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS202110802", Full_Name: "DWAMENA EUGENE AYARKWA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20216654", Full_Name: "DZAKUMA GABRIELLA AMENUVEVE AKU", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS202110752", Full_Name: "DZORGBE ELOLO ADZO", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20216702", Full_Name: "ENTSIE EMMANUEL KONADU", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20211718", Full_Name: "GAMOR MARY", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20210842", Full_Name: "GANYO WISDOM", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20213919", Full_Name: "GHARTEY AKUSHIKA CHELSEA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20211368", Full_Name: "GYEKYE PAUL ANTWI", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20216924", Full_Name: "HENYREKPE MARK-JOHN", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS202110237", Full_Name: "HOWARD JUDE", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20211062", Full_Name: "JABAAL DANIEL", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20218976", Full_Name: "KABORE DEDE ISABEL", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20211760", Full_Name: "KATAMANI VICTORIA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20216121", Full_Name: "KAWUGA JEMIMA ETORNAM", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20219676", Full_Name: "KPARIBIL PATRICK", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20217914", Full_Name: "KWAKYE MENSAH DANIEL", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20216930", Full_Name: "KWAKYE YEBOAH EMMANUEL NYAMEKYE", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS202110021", Full_Name: "KYENKYEHENE ENOCH", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20219515", Full_Name: "MAWUDRO ELEANOR ATSU", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20216060", Full_Name: "MAWUSI ERNEST DELALI", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20215830", Full_Name: "MCKEOWN CALEB", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20219588", Full_Name: "MENSAH-SEBUABE THEOPHILUS", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20219215", Full_Name: "MENSAH-TETTEH ODEHEY", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20218107", Full_Name: "METTLE RAPHAEL HANSON", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20217283", Full_Name: "NSIAH LAWRENCE KOFI", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20217249", Full_Name: "NUDANU ISAAC", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20219057", Full_Name: "NYUIEFE KAFUI EDITH", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20217708", Full_Name: "OBENG JUDAH", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20217268", Full_Name: "ODJER FLORENCE DABRAH", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20216777", Full_Name: "ODURO MARFOA ABIGAIL AKOSUA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS202110487", Full_Name: "ODURO PHRIMPONG DELVIN", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20213948", Full_Name: "OFORIWAA ESTHER", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20216113", Full_Name: "OKORLEY ATO TETTEH", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20217391", Full_Name: "OPONG EMMANUELLA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20214861", Full_Name: "OPPONG-BAAH EMMANUELLA NANA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS202110123", Full_Name: "OSEI BONSU JEFFREY", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20217861", Full_Name: "OSEI GYAN HERBERT", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20219673", Full_Name: "OSEI-TUTU RANSFORD JUNIOR", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS 20215724", Full_Name: "OSEKRE JOSHUA NII ADJETEY", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20216888", Full_Name: "OTOKUNOR JOSHUA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20216725", Full_Name: "OWUSU ANSAH RANSFORD", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20217421", Full_Name: "OWUSUWAAH CHARITY AKUA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS202111078", Full_Name: "PUNANA COSMOS", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20222814", Full_Name: "SANWUOK SUSSANA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20216770", Full_Name: "SEDOHIA ALBERT GBAFA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20213683", Full_Name: "SEDZRO MOSES", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20213775", Full_Name: "SEY VICTOR NANA SEKYI", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20217245", Full_Name: "SHAFIWU ABDUL RAZAK YORIMAH", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20223199", Full_Name: "SIFAH KOFI DANIEL", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20218351", Full_Name: "SOMADO JESSICA MAMAN DEDEI", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20218779", Full_Name: "TAKUH BRIGHT SELASIE", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20218985", Full_Name: "TAMATEY AARON TETTEY", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20221027", Full_Name: "TANDOH THEOPHILUS", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS202110019", Full_Name: "TENU COURAGE MORKPORKPOR", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS202110557", Full_Name: "TIASE BENJAMIN ELORM", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20216244", Full_Name: "TSEBI ERIC", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20217641", Full_Name: "TWUMASI MICHAEL AGYEI", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20214833", Full_Name: "VORDZORGBE YAO PETER", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20215078", Full_Name: "WAYOE MATTHEW TETTEY", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS202110569", Full_Name: "YEBOAH JULIET", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "500", Index_Number: "UHAS20219005", Full_Name: "ZODE PRECIOUS", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS202213140", Full_Name: "ABEKAH KWESI", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS20225901", Full_Name: "ACHEAMPONG RANDOFF CLINTON NANA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS202211576", Full_Name: "ADAMAH LOVERANCE SELORM", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS202212589", Full_Name: "ADAWU SOLOMON ELIKEM", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS202213942", Full_Name: "ADDEY ANGEL NANA YAABA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS202214529", Full_Name: "ADDO DAVID AFRIYIE KAFUI", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS20222012", Full_Name: "ADDO NICOLE OBIRIBEA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS20226295", Full_Name: "ADJEI LADY JANE AWUSI", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS202215806", Full_Name: "ADOTEY MERRILYN NAA DZORMO", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS20229173", Full_Name: "ADUADDY PRECIOUS", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS20223436", Full_Name: "AFENU ENAM YAA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS20227320", Full_Name: "AGBENYO PEARL ENYO", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS202210661", Full_Name: "AGBETSISE YONAH", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS20228860", Full_Name: "AIDAM LOVE ATSU", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS202211476", Full_Name: "AMANKWAA DEGBE LOIS", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS202214508", Full_Name: "AMO OMARI KWASI OFORI", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS20228302", Full_Name: "AMOO RICHAEL OBIELEY", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS202213235", Full_Name: "ANDOH BLESSING KWAME", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS202214065", Full_Name: "ANING ISABELLA NANA SARPOMAA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS20229191", Full_Name: "APPIAH LOIS POKUA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS20224846", Full_Name: "ASAMOAH EMMANUELLA ANKOMAH", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS20221555", Full_Name: "AYAABA RACHEL", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS202213963", Full_Name: "BADAGBOR REDEEMER KOFI", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS20222660", Full_Name: "BOATENG LORD OPOKU", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS20228510", Full_Name: "BROBBEY  JAPHTER", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS20226790", Full_Name: "BROWN KENNEDY", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS20221828", Full_Name: "CODJOE ROMEO  NII AKUSHE", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS20220907", Full_Name: "DANIELLA ADZAH DZIEDZORM", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS20224137", Full_Name: "DANSO BENNEDICT TWUM", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS20227711", Full_Name: "DANSO RAYMOND PAMINAS", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS20225185", Full_Name: "DESOUZA KINGDAVID SELASIE KOFI", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS202214726", Full_Name: "DONKOR JAPHET", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS202214737", Full_Name: "DUFIE FEDRA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS20227677", Full_Name: "DWEMOH COLLINS NANA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS20229177", Full_Name: "DZAM SEDEM AFI", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS202213151", Full_Name: "ESSIBU BAABA YARTELBAH", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS20228661", Full_Name: "FIANU BELINDA LEBENE", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS20229190", Full_Name: "FIANU ISABEL NAANA ENAM", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS202214275", Full_Name: "FORSON CHRISTINE ASEMPA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS202213120", Full_Name: "GANYO PRINCESS", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS20229744", Full_Name: "GOKA REGINALD KEKELI", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS202213951", Full_Name: "GYASI SAMUEL OBENG", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS202214292", Full_Name: "KLU RICHARD ELOLO", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS20229820", Full_Name: "KONU XORLA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS20228944", Full_Name: "KORDA EDMUND NII LAMTEY", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS202213302", Full_Name: "LANSINI MUMUNI BASAANA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS20225671", Full_Name: "LANYO TIMOTHY MAWULI", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS202214076", Full_Name: "MAAME YAA OFORIWAA OFORIATTA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS202214664", Full_Name: "MARFO ENOCH ADJEI", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS202214022", Full_Name: "MENSAH MERCY LARTELEY", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS202211867", Full_Name: "MENSAH WILLIAM OFORI", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS202215609", Full_Name: "METEKU JESSICA SITSOFE", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS202213368", Full_Name: "NTOW LOUIS", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS202214217", Full_Name: "NTUMI JOANA SARFOWAA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS20227539", Full_Name: "OBENG LOIS KWEGYIR", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS20225514", Full_Name: "ODJAO-NARTEY KELVIN TETTEH", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS202212408", Full_Name: "OFORI BOATENG DANIEL", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS20228841", Full_Name: "OSEI ISAAC", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS202212569", Full_Name: "OSMANU ILHAAM", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS20225997", Full_Name: "OTUTEYE JOSEPH SEMAYOR JNR", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS20226337", Full_Name: "OWADIEH  PRINCE  AMPONSAH", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS202214879", Full_Name: "OWUSU CLEVET OSEI", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS20228029", Full_Name: "OWUSU SILAS", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS202211210", Full_Name: "PALM EDITH MAA MOTA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS20226203", Full_Name: "SACKEY SOLOMON", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS202211733", Full_Name: "SAFO NANA YAW", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS202213135", Full_Name: "SALIU UMMU", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS202215731", Full_Name: "SEY  CHRIS  ANGELA MARIAN", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS20228644", Full_Name: "SIABI ELINAM AKUA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS20227998", Full_Name: "WOMBEOGO MELCHIZEDEK", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS20224483", Full_Name: "NYAMEKYE EDWARD BENEVOLENT", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS20225175", Full_Name: "BANAHENE MARGARET AKUA OFORIWAAH", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS20226466", Full_Name: "ADUKONU PRINCE CHARLES", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS20224992", Full_Name: "ADZOKPA  SERAPHINE AKU KEKELI", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS202211285", Full_Name: "AGBEKO KORBLAH ESEADE", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS20229305", Full_Name: "AGBLEKPE THYWILL", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS20228674", Full_Name: "AKROFI PROMISE NHYIRA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS20226192", Full_Name: "AKWETEY JOSHUA NUERTEY", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS202212873", Full_Name: "AMESIANYA GODFRED", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS20229902", Full_Name: "AMEVOR GABRIEL", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS202214130", Full_Name: "ANTWI ZEPHANIAH KWEKU YEBOAH", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS202213274", Full_Name: "ATAMPUGRE  FREDA  AWINOMA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS20225337", Full_Name: "ATANGA EMMANUEL ANABILA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS202212783", Full_Name: "AWINI ELVIS AWINTOEN", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS202213567", Full_Name: "BOADU NICHOLAS", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS20227498", Full_Name: "BRITTANY KABA PINA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS20226583", Full_Name: "BULLA JADE PERCY", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS20227372", Full_Name: "DOGBE CHRISTIAN", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS202212960", Full_Name: "DORNYA ERNEST MAWULI", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS20221620", Full_Name: "FIANKOYIRENKYI CHURCHILL", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS20225369", Full_Name: "GBEBLEWU KEKELI KOMLA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS202213868", Full_Name: "GYAPONG HILDA AFIA ASANTEWAA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS20225767", Full_Name: "HARUNA ABDULLAH ABASS", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS20227273", Full_Name: "HLORLEWU ISHMAEL SELASE", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS20224200", Full_Name: "KOMLAGA EUGENE ETONAM", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS20224479", Full_Name: "KWOFIE SAMUEL BENJAMIN", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS202216110", Full_Name: "LOUIS SONGEH", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS202214061", Full_Name: "OBENG KWAME ALEXANDER JUNIOR", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS202212285", Full_Name: "OFORI AARON ANYIMADU", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS202214633", Full_Name: "OHEMENG AUGUSTINE", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS20228350", Full_Name: "OPPONG EUNICE ASAAH", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS202211620", Full_Name: "OWUSU WILFRED", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS20221251", Full_Name: "OWUSU-AFRIYIE ALBERTINA SERWAA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS202215443", Full_Name: "SAEED HAJIA SUMAYYA BINTU", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS202213117", Full_Name: "SARAH ODOI", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS202215362", Full_Name: "SMITH ELLIOTT YEBOAH", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS202212234", Full_Name: "SULAIMAN ZULAIHA TAHIRU", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UKRAINE", Full_Name: "TEMENG ADUBOFOUR DANIEL", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS20226531", Full_Name: "TORGBO RICHARD", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS202214753", Full_Name: "WIAFE GLORIA KONADU", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UHAS20223963", Full_Name: "YALMON JAPHETH NAAYINMAHEMI", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "400", Index_Number: "UKRAINE", Full_Name: "YEBOAH SARKODIE MICHAEL", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202319370", Full_Name: "ACHEM WORLANYO OSRIC", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202332436", Full_Name: "ADJEI MENSAH KWAKU ADU", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202328287", Full_Name: "ADUGU JOSHUA EYRAM", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202333215", Full_Name: "ADZAMLI DICKSON", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202328942", Full_Name: "AGBELI WISDOM EDEM", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202326923", Full_Name: "AKOMEA ADDO KWADJO", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202323753", Full_Name: "AKPANDJA HENRY KWAKU", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202321441", Full_Name: "AMARTEY ELISHA NENE-ARMAH", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202321336", Full_Name: "ANDOH MELCHISEDEC", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202333539", Full_Name: "APPIAH BOATENG CYRIL", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202321630", Full_Name: "APPIAH NANA KWASI", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202318079", Full_Name: "ASARE BRAINARD JAY", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202320416", Full_Name: "ASARE DAVID KWAKU", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202330896", Full_Name: "ASHIE DROMOR AMON", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202324000", Full_Name: "ASIAM SAMUEL BOAKYE", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202322826", Full_Name: "ASIRIFI MICHAEL KISSI", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS20233364", Full_Name: "AVORYI SAMUEL ELIKPLEM", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202325550", Full_Name: "AWORTWE PAA KOFI DE-GRAFT", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202303438", Full_Name: "AYAMBILLAH IDDRISU SULLEY", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202330835", Full_Name: "AZZARO MUBARAK ASINAYIRE", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202322866", Full_Name: "BANSI ABUBAKARI SADIK ABDUL RAZAK", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202330284", Full_Name: "BOATENG GIDEON NYAMEKYE", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202321262", Full_Name: "COBBINA BLESSING", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202322294", Full_Name: "DANSO DENNIS", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202332481", Full_Name: "DICKSON KWADWO BOAKYE DUAH", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202319995", Full_Name: "DZEKEY DESMOND KWAME", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202323986", Full_Name: "EGBADZOR KENNETH BAKHITA YAO", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202327996", Full_Name: "HERMAN IRENAEUS TETTEH", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202319715", Full_Name: "KARIKARI KOFI YESU", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202322105", Full_Name: "KIATCHEY NICHOLAS KWAME", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202323308", Full_Name: "KPOFIANU CLINTON", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202322007", Full_Name: "KWABLA GABRIEL AYERTEY", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202325895", Full_Name: "LARBI RICHARD OPARE", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202328971", Full_Name: "MENSAH BEZALEEL KWAKU", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202323526", Full_Name: "MISSINOU MICHEL LOUIS", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202329809", Full_Name: "MOHAMMED UMEYR UMAR", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202332731", Full_Name: "MORTIGLO CALVIN SEYRAM", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202318128", Full_Name: "NANI SAMUEL", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202319837", Full_Name: "NORMESHIE PHILIP", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202318841", Full_Name: "NYAME OPPONG KYEKYEKU", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202326810", Full_Name: "NYANKSON FRANKLINE-JACOB EKOW", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202318379", Full_Name: "NYAUNU ALBERT SEDEM LARTEY", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202323131", Full_Name: "OBENG RANDY NANA KWADWO", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202327430", Full_Name: "OBLEJUMA LEMUEL AKO ANANG", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202326909", Full_Name: "ODOOM ABUBAKAR SADIQQUE", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202319064", Full_Name: "OSEI KWAKU MENSAH", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202330696", Full_Name: "OSWALD NUNOO", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202328445", Full_Name: "QUARTEY-PAPAFIO ARIEL MAWUNYO", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202326917", Full_Name: "RAJI FAITHFUL LIKEM KWESI", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202321962", Full_Name: "ROCKSON ERNEST KOJO", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202318708", Full_Name: "SARKWAH EDWIN PAPA YAW SARPONG", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202323469", Full_Name: "TETTEH DAVID MANORTEY", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202332709", Full_Name: "YEBOAH JEPHTHAH GYIMAH", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202329906", Full_Name: "ABANKWAH AKOSUA MIREKUA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202322543", Full_Name: "AFREKU-BOAFO ETHEL", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202322536", Full_Name: "AGYEI PASCALINE ABENA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202330281", Full_Name: "AKINTOLA PRECIOUS ESENAM", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202324437", Full_Name: "AKOTO NINA EDWINA EYERAM WOETS", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202324444", Full_Name: "AKOTO NINA ERIKA ESENAM WOE", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202326611", Full_Name: "AKPELOO REBECCA AFUA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202321810", Full_Name: "AMEMASOR MARGARET AKPENE.", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202319836", Full_Name: "AMEMAZIOR THELMA EDEM ABLA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202328404", Full_Name: "ANOWUO CASSANDRA AGYARKO", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202333748", Full_Name: "APANA SHAMMAH AYINBOBIN", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202333150", Full_Name: "APPIAGYEI MARY SPENDILOVE", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202326827", Full_Name: "ARTHUR EMMANUELLA BROWN", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202322717", Full_Name: "ARYITEY SHARON NAA DEDEI", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202421321", Full_Name: "ASAMPOA MAVIS AYINDOLIM", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202327169", Full_Name: "BENYAH NANA AMA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202324472", Full_Name: "BLEVI MARKCILIA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202323799", Full_Name: "BOAMAH NANA AMA EDWIBI", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202321452", Full_Name: "CLIVE-PLANGE JORMI EWURABENA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202325303", Full_Name: "DAUTEY VANESSA EJORMI AWAZI", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202333536", Full_Name: "FOSU EFUA ABOAGYEWAA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202323285", Full_Name: "GBAGBO ETORNAM EYRAM ESI", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202327604", Full_Name: "KUFFOUR OSEI CLAUDIA ANTWI", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202330446", Full_Name: "KWADZOVI-DEFOR THEODORA SEYRAM", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202333069", Full_Name: "LARKAI VANESSA GOODY NAA LARTELEY", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202330614", Full_Name: "MALM CLARISSA SARAH", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202324431", Full_Name: "MWIN CHRISTINE SUNGNOMA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202325699", Full_Name: "NINIWOFENYO CAROLINE ETORNAM", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202328985", Full_Name: "NUGBA SAMUELLA ESENAM", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202318200", Full_Name: "OKAE AKOSUA ASAEBEA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202326411", Full_Name: "ORISH JOSEE CHIDINMA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202324247", Full_Name: "OTOO BROWN VICTORIA VALLINA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202326702", Full_Name: "OWUSU ABENA SERWAA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202330793", Full_Name: "OWUSU ADWOA POMAA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202318758", Full_Name: "PINGNAA IVY SONGVIELE", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202332730", Full_Name: "SANNIE HAIRIYA SAHARA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202318879", Full_Name: "SEGBEFIA JULIET AMA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202332568", Full_Name: "SEGBEFIA PRINCESS VANESSA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202322079", Full_Name: "TERRY GEORGINA SARFOA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202333154", Full_Name: "TETTEH NELORM", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202332445", Full_Name: "TIA BERNICE SAMATA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202332106", Full_Name: "TOTIMEH LYDIA OLERKI", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202324262", Full_Name: "ZOGLI MATILDA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202320132", Full_Name: "AFARI EMMANUEL DEBRA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202325702", Full_Name: "AGBORSOMU ISAAC NEWTON", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202325032", Full_Name: "NSOBILA DANIEL ABEIYE", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202333725", Full_Name: "TETTEH NICHOLAS KOFI JUNIOR", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202324461", Full_Name: "MOHAMMED RABIATU", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202329336", Full_Name: "ASANTE JOSEPH OCRAN", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202327375", Full_Name: "AYINE DOMINIC", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202325176", Full_Name: "EFFAH EMMANUEL", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202330490", Full_Name: "FIADJOE ABRAHAM -GL", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202321297", Full_Name: "OPOKU NYAMEKYE GIDEON", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202321771", Full_Name: "SUU-IRE JOHN MALYIR", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202329910", Full_Name: "ANDERSON JOANNITA ACHEAMPOMAA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202327360", Full_Name: "GATOR-LAGBLE ENYO AKU", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202323021", Full_Name: "MAHU SITSOPE", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202328854", Full_Name: "OWUSU GYIMA OFORIWAA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202322838", Full_Name: "OWUSU KRISTODIA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202329574", Full_Name: "WORDEY ENYONAM ADZO", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "300", Index_Number: "UHAS202324337", Full_Name: "YARBOI LOIS", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202422035", Full_Name: "EWURABENA GYAPOMAA BEEKO ADDO", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202421953", Full_Name: "MOHAMMED ABU HABIBA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "", Full_Name: "ANDREW KLOMEGAH", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202421517", Full_Name: "ODOOM MARY ASABEA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202420586", Full_Name: "SERWAA MARIA DANIELLA BONSU", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202420732", Full_Name: "PHLOTEY SEYRAM NAPHTALI", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202400280", Full_Name: "LOGLO WOODE JOAN EDINAM", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202420245", Full_Name: "ATSU ETONAM ERIC AGBO", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202421968", Full_Name: "OWUSU RACHEAL", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202421878", Full_Name: "MARTEY BEMPOMAH PRINCESS DEBBY", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202421988", Full_Name: "OFOSU MINTAH MERCY DANIELLA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202490337", Full_Name: "GALLEY CELESTINA ELORM", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202421003", Full_Name: "DAARA ELIZABETH", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202421482", Full_Name: "NYANWURA THULINDA BAKUFIA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202400306", Full_Name: "OPOKU IVY POKUAA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202421496", Full_Name: "MENSAH EMMANUELLA AFIBA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202421459", Full_Name: "DZEGEDE JULIET SENA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202422071", Full_Name: "KLOMEGAH PETERINA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202421586", Full_Name: "BOATENG PRINCE ADDAE", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202419601", Full_Name: "AHENKORAH CHURCHILL ASANTE", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202421606", Full_Name: "HOUNGO MANASSEH", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202421590", Full_Name: "TIMINCA LAWSON KWASI", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202420474", Full_Name: "AMOAH-BIMPONG GABRIELLA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202420710", Full_Name: "KUMORDJI BLESS WILSON KWAKU", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202421865", Full_Name: "DOTSE GODSON SELASI", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202421151", Full_Name: "AGYEMANG YAW", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202421291", Full_Name: "KWADWO NANA AFRIYIE", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202420217", Full_Name: "TETTEH CALEB NARH", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202421352", Full_Name: "AGYEMAN JOSIAH KWADWO", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202421480", Full_Name: "ADDAE ERIC BOADU", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202419719", Full_Name: "OWUSU-AGYEMANG YAW SEFAH", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202421967", Full_Name: "BUASILENU SAMUEL KWABENA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202420488", Full_Name: "MENSAH DUAH CHARLES", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202490310", Full_Name: "ASSAN BAAH SILAS", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202421438", Full_Name: "NUAMAH ADOM EFFAH", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202421438", Full_Name: "AGYARKO KELVIN ADU", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202419760", Full_Name: "AMANKWAH SHADRACK", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202420435", Full_Name: "AGBOSO AUGUSTINA YAA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202421651", Full_Name: "AGYEI KEZIAH NHYIRA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202421575", Full_Name: "TITRIKU PRINCE SENAM", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202421912", Full_Name: "AGYEKUM EMMANUEL BOAMAH", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202421852", Full_Name: "MORGADZI MANASSEH KELVIN", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202421603", Full_Name: "BOATENG JEFFERY", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202421512", Full_Name: "ASUMADU SAMUEL KWAKU BAAH", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202421911", Full_Name: "OBU PAUL DAVID", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202420505", Full_Name: "ANNAN DOROTHY ADU", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202421270", Full_Name: "BREDZEI EMMANUEL EDEM KOMLA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202420162", Full_Name: "SEKYI-APPIAH KWADWO", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202420105", Full_Name: "JESSEWUNI ZEPHANIAH SUHUYINI", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202490213", Full_Name: "AKOLGO SIMON ATINGANE", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202420386", Full_Name: "LAMPTEY GODWILL JOHN", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202400352", Full_Name: "ASANTE SAMUEL AMARDI", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202419783", Full_Name: "ASANTE DAVID KWAKU OKYERE", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202419737", Full_Name: "DARKO GIDEON", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202419813", Full_Name: "INKOOM EDWIN KWARM", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202420468", Full_Name: "OPPONG NKETIAH RAMZEY", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202422346", Full_Name: "NUWORDZRO JONAS COURAGE", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202422342", Full_Name: "AKUMANI CONRAD EYRAM", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202421503", Full_Name: "ZIMMERMANN KATE KORKOR", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202421498", Full_Name: "KUMATROR BERTINA YORM", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202421201", Full_Name: "DAMPTEY NANA AMMA NHYIRA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202420225", Full_Name: "EZU-ANNAN IVAN WOENABAKA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202419862", Full_Name: "FRIMPONG KWABENA DESMOND", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202420612", Full_Name: "BEBLI IVY YAWO", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202419799", Full_Name: "AMETEFE ERNEST", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202420859", Full_Name: "DADZIE COMFORT", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202419738", Full_Name: "MILLS SANDRA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202420087", Full_Name: "OPPONG BENEDICT BOAKYE FORDJOUR", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202420059", Full_Name: "IDDI ARDENAN", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202420085", Full_Name: "TANOR FRIMPONG LISTOWELL", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202422077", Full_Name: "VIDZA PRINCE YAYRA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202400247", Full_Name: "KODJOE CLELAND MAGDALENE", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202422065", Full_Name: "OWUSU BENEDICTA ADUBIA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202420641", Full_Name: "AWOLOH EMELDA LENUCIA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202420320", Full_Name: "HOTOR DESMOND MAWUFEMOR", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202420685", Full_Name: "MINGLE KAREN", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202422052", Full_Name: "OBENG-KYEREMATENG EMMANUELLA YEBOAH", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202422050", Full_Name: "AGLONA PRINCE SYLVESTER ETORNAM", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202422088", Full_Name: "OFOSU-DANKYI SAMUEL KELI ANSONG", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202421859", Full_Name: "BECHE STEPHANIE MWINZIE", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202421280", Full_Name: "OWUSU NANA AKUA KORKOR", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202490280", Full_Name: "BART-PLANGE YACOBA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202419882", Full_Name: "GBEZEH GABRIEL EDEM KWAKU", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202420823", Full_Name: "ACKAH BISMARK", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202490253", Full_Name: "OPOKU EMMANUEL", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202422040", Full_Name: "ADENTWI-SELBY CHARLES KWAMENA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202420017", Full_Name: "OKANTAH ENOCH", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202421301", Full_Name: "ATITSOGBUI NANNEL ODEIBEA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202421402", Full_Name: "HABADAH JESSICA EYRAM FALI", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202490206", Full_Name: "COFFIE RABIATU AARYAN", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202420197", Full_Name: "ABUSAH JEMIMA DZIDZOR", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202420953", Full_Name: "PREMPEH KWASI KATAKYIE", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202420198", Full_Name: "TETTEH CHELSEA NAA KOMEOKOR", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202420888", Full_Name: "LAMPTEY NII LANTEY MICHEAL", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202419764", Full_Name: "OFORI ADWOA ANIMA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202421322", Full_Name: "HAMADU AYISHA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202419680", Full_Name: "APPIAH CHARLOTTE", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202420294", Full_Name: "IMMANUEL XORLALI ADDISON", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202421297", Full_Name: "KORANTENG KELVIN LARBI", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202422080", Full_Name: "NYADEDZOR SOLOMON", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202420481", Full_Name: "SUNNU EVANS EDUDZI KOFI", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202420826", Full_Name: "NYAABA MARY ATADANA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202419736", Full_Name: "AMPONSAH NYANTAKYIWAAH STELLA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202400331", Full_Name: "TAKYI EBO INCOOM", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202420114", Full_Name: "LEKETTEY CATHERINE ELIZABETH AFI", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202420930", Full_Name: "NYAMADI DZIDZOR DORINDA ADZO", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202422039", Full_Name: "AFFRAM LARTEY ENRIQUETA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202421853", Full_Name: "DEKU SANDY WORLANYO", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202421383", Full_Name: "UNIBONMOR LINDA NALIDO", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202421253", Full_Name: "GYIMAH KWAKU AYEH", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202420889", Full_Name: "DUNEEH KEZIA AKOSUA", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202421160", Full_Name: "MAHAMA JOYCE", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202420178", Full_Name: "NKETIAH DAVIS NANA FOSU", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202490263", Full_Name: "AANAM AYEYI DORKENOO", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202419759", Full_Name: "KUSI-ADJEI, MILLICENT", PROGRAMME: "DENTISTRY", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202419804", Full_Name: "OSAE-MANTE, KWESI OFORI", PROGRAMME: "DENTISTRY", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202419968", Full_Name: "Tsyi, Anita Sharon Elom", PROGRAMME: "DENTISTRY", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202419988", Full_Name: "ABDUL NASIR, FATIMA", PROGRAMME: "DENTISTRY", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202420427", Full_Name: "Takyi, Isaac Kojo", PROGRAMME: "DENTISTRY", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202421144", Full_Name: "TORSOO, ENYONAM PHILIPA A", PROGRAMME: "DENTISTRY", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202421155", Full_Name: "WALIER, JOYCA", PROGRAMME: "DENTISTRY", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202421172", Full_Name: "Jangu Ahmed, Ayisha  Delimwini", PROGRAMME: "DENTISTRY", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202421179", Full_Name: "BOTCHWAY, DAVE", PROGRAMME: "DENTISTRY", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202421208", Full_Name: "ANYIDOHO, MIRABELLE SEDEM", PROGRAMME: "DENTISTRY", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202421243", Full_Name: "AHIABU, ELIJAH ELIKEM KWAKU", PROGRAMME: "DENTISTRY", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202421250", Full_Name: "Wumbei, Kasuli Ziyad Mohammed", PROGRAMME: "DENTISTRY", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202421267", Full_Name: "ANABA, CAESAR NSOH", PROGRAMME: "DENTISTRY", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202421383", Full_Name: "JATOE, JAMES", PROGRAMME: "DENTISTRY", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202421428", Full_Name: "OFFEI, EMMANUEL ADU", PROGRAMME: "DENTISTRY", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202421441", Full_Name: "OFOSU, SARAH SENIOR", PROGRAMME: "DENTISTRY", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202421504", Full_Name: "Danso Adu-Gyamfi, Lois", PROGRAMME: "DENTISTRY", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202421787", Full_Name: "Tagbor, Roland Kwaku", PROGRAMME: "DENTISTRY", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202421954", Full_Name: "ANOKYE, EMMANUELLA ANUONYAM", PROGRAMME: "DENTISTRY", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202421962", Full_Name: "OSEI, KROPAH PRINCE HENRY", PROGRAMME: "DENTISTRY", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202421967", Full_Name: "BUASILENU, SAMUEL KWABENA", PROGRAMME: "DENTISTRY", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202422012", Full_Name: "Tamakloe, Bassilius Kekeli Korblah", PROGRAMME: "DENTISTRY", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202490230", Full_Name: "AGYEI, ENOCK", PROGRAMME: "DENTISTRY", Status: "Active" },
+  { LEVEL: "200", Index_Number: "UHAS202490343", Full_Name: "Adzah, David", PROGRAMME: "DENTISTRY", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202500885", Full_Name: "Nudo Akpene", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202503967", Full_Name: "Atinga Audrey Ateeboba", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202500929", Full_Name: "Afenyo-dehlor Blessings Senam", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202501522", Full_Name: "Nyarko Mark Quincy", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202514534", Full_Name: "Genya Valeria", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202502690", Full_Name: "Mensah Angelo", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202510122", Full_Name: "Yeboah Abigail Appiaa", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202501967", Full_Name: "Dansoh Melville George", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202513470", Full_Name: "Cudjoe Samuel Papa Anwonzoh", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202501217", Full_Name: "Gankui Pamela Shika Adzo", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202508358", Full_Name: "Doe Morris Deladem", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202500613", Full_Name: "Saakat Joyceline Winpang", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202500790", Full_Name: "Boahen Ernestina  Akua Twenewaa", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202511859", Full_Name: "Barns Solomon Joseph", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202505737", Full_Name: "Marfo Prince Nyamekye", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202502014", Full_Name: "Ayenera Jessica Aganamah", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202505686", Full_Name: "Obu Princess Amponsah", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202506167", Full_Name: "Adawroma Collins Enam", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202508482", Full_Name: "Oteng Jonathan Antwi", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202510473", Full_Name: "Kposu Eliezer Shika", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202514205", Full_Name: "Ankomah Ezekiel  Kwabena Afum-mensah", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202500104", Full_Name: "Akortsu Lydia Sitsope", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202509352", Full_Name: "Anaman Hillary Nana Efua", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202502590", Full_Name: "Ahorlu Desmond Xorse Korbla", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202514442", Full_Name: "Saeed Burhandeen Aisha", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202506203", Full_Name: "Dzebu Gloritta Delase", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202504549", Full_Name: "Boye Sally Naa Ayorkor", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202512358", Full_Name: "Yussif Kabiru", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202508242", Full_Name: "Avetu Priscilla Sedinam", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202509342", Full_Name: "Mohammed Suad Suhuyini", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202509967", Full_Name: "Buabeng Ohene Kwame Frimpong", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202509274", Full_Name: "Melomey Wilson Emmanuel", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202513972", Full_Name: "Bonsu  Dominic  Tei", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202501786", Full_Name: "Abotsi Justin Makafui", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202501286", Full_Name: "Amagloh Fedora Mawutor", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202509711", Full_Name: "Tamatey  Esther Arkor", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202509692", Full_Name: "Tamatey  Felicia Akweley", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202502037", Full_Name: "Sarfo-boateng Vicandy", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202501923", Full_Name: "Agyemang-benchie Nhyiraba", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202505349", Full_Name: "Kusi Stephen Junior", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202505469", Full_Name: "Duaquaye  Christian  Kofi", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202510142", Full_Name: "Acheampong Kwame Ohene", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202506039", Full_Name: "Emahi Mustapha", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202509670", Full_Name: "Nachelleh Sheryne Nuoviel", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202503807", Full_Name: "Adu-gyamfi Ivan Darko", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202509257", Full_Name: "Odoi Emmanuel Okpoti", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202503120", Full_Name: "Oppong  Charles Junior", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202502409", Full_Name: "Amoateng Blessing Nana Ama", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202502264", Full_Name: "Ngambire Yishimabeth Yengtel", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202505650", Full_Name: "Agyapong Lady Nelly", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202507125", Full_Name: "Abiwu Ekplorm Afi", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202512493", Full_Name: "Doe-mensah Redeemer Kekeli", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202514470", Full_Name: "Paintsil Elisa Karen", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202509958", Full_Name: "Bediako Alfred Nana Yaw", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202514954", Full_Name: "Ameevor  Dova Viola Aseye", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202507182", Full_Name: "Kporfor Princess Yayra", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202504125", Full_Name: "Yeenu Blessing Baaba", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202509066", Full_Name: "Bagida Kezia Nordziko", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202514079", Full_Name: "Nelson Arnold Jnr", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202503542", Full_Name: "Obeng Michael Boakye", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202500441", Full_Name: "Manu Blessing", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202510950", Full_Name: "Amponsem Priscilla Afia Agyeiwa", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202514953", Full_Name: "Delle Julien Naaluyele", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202508042", Full_Name: "Andoh Enoch Atta Baah", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202514797", Full_Name: "Amoh Claudia Adwoa Mansa", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202500077", Full_Name: "Gidi Feliicia", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202502138", Full_Name: "Anku Boateng  Valerie  Dela", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202508532", Full_Name: "Asiedu Eric Mensah", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202513538", Full_Name: "Dzefi Carl  Sedem", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202501013", Full_Name: "Kyei Nana Afia Dufie", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202514314", Full_Name: "Mallen-ntiador Wumbornen Toby Jude", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202511257", Full_Name: "Osei Emmanuel Oduro", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202514499", Full_Name: "Baidoo Nhyira Ansah", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202504764", Full_Name: "Sokpoi-eklu Sena", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202510465", Full_Name: "Okyere Emmanuel", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202503535", Full_Name: "Wiafe Prince Boadi", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202502882", Full_Name: "Hanson Andy Fiifi Brefo", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202500975", Full_Name: "Apedoe Zaravis Maku", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202510152", Full_Name: "Adagbe Devina Eyram", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202507370", Full_Name: "Eshun Hillary Oye", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202510502", Full_Name: "Ababio Senyo", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202505200", Full_Name: "Antwi Justice", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202512789", Full_Name: "Dadzie Kingsley Triumph", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202511363", Full_Name: "Kwofie Isabella Adjoba", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202501289", Full_Name: "Amoh-boahen Kwaku Mintah", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202501599", Full_Name: "Asiedu Risberg Asiedua", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202513826", Full_Name: "Essel Baaba Ayeyi", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202501825", Full_Name: "Baidoe-ansah Jeannette", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202514757", Full_Name: "Akussah Nunana", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202505730", Full_Name: "Dzidzienyo Miguel Makafui Kwame", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202507917", Full_Name: "Essibu Paulina Nhyira", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202512185", Full_Name: "Nyinaku Nissi Asare Annor", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202508228", Full_Name: "Yirenkyi Cardimel Oparebea", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202502346", Full_Name: "Owusu Athanasius Sarpong", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202510261", Full_Name: "Opoku Ware Akua Adomaa", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202502231", Full_Name: "Bekoe-ess Nhyiraba  Chief-kakraba", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202505281", Full_Name: "Seadey Princess Keziah Eyram", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202508255", Full_Name: "Normenyo Patrick Yaw Elikem Junior", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202507062", Full_Name: "Ntow Danso Akyede Kwasi", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202503491", Full_Name: "Sikatse Samuel Sefadzi", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202514445", Full_Name: "Owusu-ansah Natalie", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202500323", Full_Name: "Addo Mark Aniapam", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202514461", Full_Name: "Madilo Priscilla  Delight Afi", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202501705", Full_Name: "Someah-kwaw Henry Francis", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202501120", Full_Name: "Adusei Eva Opoku", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202500498", Full_Name: "Trawule Pokuaa Maame Ama", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202504624", Full_Name: "Martinez Gil Brayan", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202504802", Full_Name: "Kayan Vera Bijiemi", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202501195", Full_Name: "Brown Sarah Takyiwaa", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202507369", Full_Name: "Laaribik Faith Feidib", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202500173", Full_Name: "Agyapong Karen Menka", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202513609", Full_Name: "Agyei Christopher", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202504891", Full_Name: "Lorbotwe22 Lord Amoh-siaw", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202502594", Full_Name: "Amexo Elvis Edudzi Yao", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202501789", Full_Name: "Djabatey Dorcas Koryoo", PROGRAMME: "MEDICINE", Status: "Active" },
+  { LEVEL: "100", Index_Number: "UHAS202502287", Full_Name: "Frimpong Sandra Serwaa", PROGRAMME: "MEDICINE", Status: "Active" }
+];
+    
+    // ============== GLOBAL VARIABLES ==============
+    let studentDatabase = STUDENT_DATABASE; // Use embedded database
+    let selectedBlock = "";
+    let selectedRoom = "";
+    let selectedStudent = null;
+    
+    // ============== INITIALIZATION ==============
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log("UHAS Hostel Audit App initialized");
+        console.log(`Loaded ${studentDatabase.length} students from embedded database`);
+        
+        // Set today's date
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('auditDate').value = today;
+        
+        // Setup UI
+        generateRoomButtons();
+        setupEventListeners();
+        updateOnlineStatus();
+        
+        // Update UI with loaded data
+        updateStudentCount();
+        showToast(`✅ Loaded ${studentDatabase.length} students`, 'success');
+        updateStatus(`${studentDatabase.length} students loaded`);
+        
+        // Load saved executive info
+        loadExecutiveInfo();
+        
+        // Monitor network status
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
+        
+        // Auto-save executive info
+        document.getElementById('executiveName').addEventListener('input', saveExecutiveInfo);
+        document.getElementById('executiveID').addEventListener('input', saveExecutiveInfo);
+        
+        // Add refresh button (for submissions only)
+        createRefreshButton();
+    });
+    
+    // ============== STUDENT SEARCH ==============
+    document.getElementById('studentSearch').addEventListener('input', function(e) {
+        const searchTerm = e.target.value.trim().toLowerCase();
+        const resultsDiv = document.getElementById('searchResults');
+        
+        clearTimeout(this.searchTimeout);
+        
+        if (searchTerm.length < 2) {
+            resultsDiv.style.display = 'none';
+            return;
+        }
+        
+        resultsDiv.innerHTML = '<div class="search-item">Searching...</div>';
+        resultsDiv.style.display = 'block';
+        
+        this.searchTimeout = setTimeout(() => {
+            performStudentSearch(searchTerm, resultsDiv);
+        }, 200);
+    });
+    
+    function performStudentSearch(searchTerm, resultsDiv) {
+        const results = studentDatabase.filter(student => {
+            const idMatch = student.id.toLowerCase().includes(searchTerm);
+            const nameMatch = student.name.toLowerCase().includes(searchTerm);
+            return idMatch || nameMatch;
+        });
+        
+        // Sort results: exact matches first, then by level
+        results.sort((a, b) => {
+            const aIdExact = a.id.toLowerCase() === searchTerm;
+            const bIdExact = b.id.toLowerCase() === searchTerm;
+            if (aIdExact && !bIdExact) return -1;
+            if (!aIdExact && bIdExact) return 1;
+            
+            const aStartsWith = a.id.toLowerCase().startsWith(searchTerm);
+            const bStartsWith = b.id.toLowerCase().startsWith(searchTerm);
+            if (aStartsWith && !bStartsWith) return -1;
+            if (!aStartsWith && bStartsWith) return 1;
+            
+            return parseInt(b.level) - parseInt(a.level); // Higher levels first
+        });
+        
+        const displayResults = results.slice(0, 15);
+        
+        if (displayResults.length === 0) {
+            resultsDiv.innerHTML = '<div class="search-item">No students found</div>';
+            resultsDiv.style.display = 'block';
+            return;
+        }
+        
+        resultsDiv.innerHTML = displayResults.map(student => `
+            <div class="search-item" data-id="${student.id}">
+                <div style="font-weight: bold; color: var(--primary);">${student.id}</div>
+                <div style="font-size: 12px; color: #666; margin-top: 4px;">
+                    ${student.name}
+                </div>
+                <div style="font-size: 11px; color: #888; margin-top: 2px;">
+                    Level ${student.level} • ${student.programme}
+                </div>
+            </div>
+        `).join('');
+        
+        resultsDiv.style.display = 'block';
+        
+        // Add click handlers
+        document.querySelectorAll('.search-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const studentId = this.dataset.id;
+                const student = studentDatabase.find(s => s.id === studentId);
+                if (student) {
+                    selectStudent(student);
+                    resultsDiv.style.display = 'none';
+                }
+            });
+        });
+    }
+    
+    function selectStudent(student) {
+        selectedStudent = student;
+        
+        document.getElementById('studentID').value = student.id;
+        document.getElementById('studentName').value = student.name;
+        document.getElementById('studentLevel').value = `Level ${student.level}`;
+        document.getElementById('studentProgramme').value = student.programme;
+        document.getElementById('studentInfo').style.display = 'block';
+        document.getElementById('studentSearch').value = student.id;
+        
+        showToast(`Selected: ${student.name}`, 'success');
+    }
+    
+    // ============== FORM SUBMISSION ==============
+    async function submitToGoogleSheets(formData) {
+        showLoading('Submitting record...');
+        
+        try {
+            // Submit via Google Apps Script
+            const response = await submitViaGoogleAppsScript(formData);
+            
+            if (response && response.success !== false) {
+                showToast('✅ Record submitted successfully!', 'success');
+                clearForm();
+                saveExecutiveInfo();
+            } else {
+                throw new Error(response?.error || 'Submission failed');
+            }
+            
+        } catch (error) {
+            console.error('Submission error:', error);
+            
+            // Save locally for offline submission
+            savePendingSubmission(formData);
+            showToast('📱 Saved offline. Will submit when online.', 'warning');
+            
+        } finally {
+            hideLoading();
+        }
+    }
+    
+    async function submitViaGoogleAppsScript(formData) {
+        const scriptUrl = CONFIG.SUBMISSION_ENDPOINT;
+        
+        try {
+            const response = await fetch(scriptUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            });
+            
+            // Try to parse response
+            const text = await response.text();
+            try {
+                return JSON.parse(text);
+            } catch (e) {
+                // If not JSON, assume success
+                return { success: true, message: 'Submitted successfully' };
+            }
+            
+        } catch (error) {
+            console.error('Fetch error:', error);
+            throw error;
+        }
+    }
+    
+    function savePendingSubmission(formData) {
+        const pending = JSON.parse(localStorage.getItem('uhas_pending') || '[]');
+        const submissionId = Date.now();
+        
+        pending.push({
+            id: submissionId,
+            ...formData,
+            timestamp: new Date().toISOString(),
+            status: 'pending'
+        });
+        
+        localStorage.setItem('uhas_pending', JSON.stringify(pending));
+        updatePendingCount();
+        
+        console.log(`Saved pending submission ID: ${submissionId}`);
+    }
+    
+    // ============== EVENT HANDLERS ==============
+    function setupEventListeners() {
+        // Block selection
+        document.querySelectorAll('.block-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.block-btn').forEach(b => {
+                    b.classList.remove('selected');
+                });
+                
+                this.classList.add('selected');
+                selectedBlock = this.dataset.block;
+                
+                // Show room selection
+                document.getElementById('roomSection').classList.add('active');
+                
+                // Clear room selection
+                selectedRoom = "";
+                document.querySelectorAll('.room-btn').forEach(r => {
+                    r.classList.remove('selected');
+                });
+                
+                showToast(`Selected ${selectedBlock} block`, 'info');
+            });
+        });
+        
+        // Room selection
+        document.getElementById('roomsGrid').addEventListener('click', function(e) {
+            if (e.target.classList.contains('room-btn')) {
+                document.querySelectorAll('.room-btn').forEach(r => {
+                    r.classList.remove('selected');
+                });
+                
+                e.target.classList.add('selected');
+                selectedRoom = e.target.dataset.room;
+                
+                showToast(`Selected: ${selectedBlock}, Room ${selectedRoom}`, 'success');
+            }
+        });
+        
+        // Form submission
+        document.getElementById('auditForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!validateForm()) return;
+            
+            const formData = {
+                executiveName: document.getElementById('executiveName').value.trim(),
+                executiveID: document.getElementById('executiveID').value.trim(),
+                auditDate: document.getElementById('auditDate').value,
+                studentID: selectedStudent.id,
+                studentName: selectedStudent.name,
+                studentLevel: selectedStudent.level,
+                studentProgramme: selectedStudent.programme,
+                block: selectedBlock,
+                room: selectedRoom,
+                bedSpace: document.getElementById('bedSpace').value || 'Not Specified',
+                notes: document.getElementById('notes').value.trim() || '',
+                submissionTime: new Date().toISOString(),
+                deviceInfo: navigator.userAgent,
+                appVersion: '3.0'
+            };
+            
+            await submitToGoogleSheets(formData);
+        });
+        
+        // Clear form
+        document.getElementById('clearBtn').addEventListener('click', clearForm);
+    }
+    
+    function validateForm() {
+        if (!selectedStudent) {
+            showToast('Please select a student first', 'error');
+            return false;
+        }
+        
+        if (!selectedBlock) {
+            showToast('Please select a hostel block', 'error');
+            return false;
+        }
+        
+        if (!selectedRoom) {
+            showToast('Please select a room number', 'error');
+            return false;
+        }
+        
+        const execName = document.getElementById('executiveName').value.trim();
+        const execID = document.getElementById('executiveID').value.trim();
+        
+        if (!execName || !execID) {
+            showToast('Please fill in your executive details', 'error');
+            return false;
+        }
+        
+        return true;
+    }
+    
+    // ============== UTILITY FUNCTIONS ==============
+    function clearForm() {
+        selectedStudent = null;
+        selectedBlock = "";
+        selectedRoom = "";
+        
+        document.getElementById('studentSearch').value = '';
+        document.getElementById('studentInfo').style.display = 'none';
+        
+        document.getElementById('roomSection').classList.remove('active');
+        
+        document.querySelectorAll('.block-btn').forEach(b => b.classList.remove('selected'));
+        document.querySelectorAll('.room-btn').forEach(b => b.classList.remove('selected'));
+        
+        document.getElementById('bedSpace').value = '';
+        document.getElementById('notes').value = '';
+        
+        // Keep executive info and date
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('auditDate').value = today;
+        
+        showToast('Form cleared', 'info');
+    }
+    
+    function generateRoomButtons() {
+        const roomsGrid = document.getElementById('roomsGrid');
+        roomsGrid.innerHTML = '';
+        
+        for (let i = 1; i <= 40; i++) {
+            const roomBtn = document.createElement('div');
+            roomBtn.className = 'room-btn';
+            roomBtn.dataset.room = i;
+            roomBtn.textContent = i;
+            roomsGrid.appendChild(roomBtn);
+        }
+    }
+    
+    function updateOnlineStatus() {
+        const statusDiv = document.getElementById('syncStatus');
+        
+        if (navigator.onLine) {
+            statusDiv.className = 'sync-status online';
+            statusDiv.innerHTML = '<i class="fas fa-wifi"></i> <span id="statusText">Online</span>';
+            
+            // Try to sync pending submissions
+            syncPendingSubmissions();
+            
+        } else {
+            statusDiv.className = 'sync-status offline';
+            statusDiv.innerHTML = '<i class="fas fa-wifi-slash"></i> <span id="statusText">Offline</span>';
+        }
+    }
+    
+    function updateStatus(text) {
+        const statusText = document.getElementById('statusText');
+        if (statusText) {
+            statusText.textContent = text;
+        }
+    }
+    
+    async function syncPendingSubmissions() {
+        const pending = JSON.parse(localStorage.getItem('uhas_pending') || '[]');
+        if (pending.length === 0) return;
+        
+        showToast(`Syncing ${pending.length} pending submission(s)...`, 'info');
+        
+        const failed = [];
+        
+        for (const submission of pending) {
+            try {
+                const { id, timestamp, status, ...formData } = submission;
+                await submitViaGoogleAppsScript(formData);
+                console.log(`Synced pending submission: ${id}`);
+            } catch (error) {
+                console.error('Failed to sync:', error);
+                failed.push(submission);
+            }
+        }
+        
+        localStorage.setItem('uhas_pending', JSON.stringify(failed));
+        
+        if (failed.length === 0) {
+            showToast('✅ All pending submissions synced', 'success');
+        } else {
+            showToast(`⚠️ ${failed.length} submissions still pending`, 'warning');
+        }
+        
+        updatePendingCount();
+    }
+    
+    function updatePendingCount() {
+        const pending = JSON.parse(localStorage.getItem('uhas_pending') || '[]');
+        const statusText = document.getElementById('statusText');
+        
+        if (pending.length > 0 && statusText && navigator.onLine) {
+            statusText.textContent = `Online (${pending.length} pending)`;
+        }
+    }
+    
+    function updateStudentCount() {
+        const count = studentDatabase.length;
+        
+        document.getElementById('studentCount').innerHTML = 
+            `<strong>${count}</strong> students loaded<br>
+            <small style="color: #888; font-size: 10px;">
+                Embedded database • Always available
+            </small>`;
+    }
+    
+    function loadExecutiveInfo() {
+        const savedName = localStorage.getItem('uhas_exec_name');
+        const savedID = localStorage.getItem('uhas_exec_id');
+        
+        if (savedName) document.getElementById('executiveName').value = savedName;
+        if (savedID) document.getElementById('executiveID').value = savedID;
+    }
+    
+    function saveExecutiveInfo() {
+        localStorage.setItem('uhas_exec_name', document.getElementById('executiveName').value);
+        localStorage.setItem('uhas_exec_id', document.getElementById('executiveID').value);
+    }
+    
+    function showLoading(text) {
+        document.getElementById('loading').style.display = 'flex';
+        document.getElementById('loadingText').textContent = text;
+    }
+    
+    function hideLoading() {
+        document.getElementById('loading').style.display = 'none';
+    }
+    
+    function showToast(message, type = 'info') {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.className = 'toast';
+        
+        switch(type) {
+            case 'success': 
+                toast.style.background = 'var(--accent)'; 
+                break;
+            case 'error': 
+                toast.style.background = 'var(--danger)'; 
+                break;
+            case 'warning': 
+                toast.style.background = 'var(--warning)'; 
+                break;
+            default: 
+                toast.style.background = 'var(--primary)';
+        }
+        
+        toast.classList.add('show');
+        
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, 3000);
+    }
+    
+    function createRefreshButton() {
+        const refreshBtn = document.createElement('button');
+        refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i>';
+        refreshBtn.title = 'Sync Pending Submissions';
+        refreshBtn.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 18px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.3s;
+        `;
+        
+        refreshBtn.onmouseover = () => refreshBtn.style.transform = 'scale(1.1)';
+        refreshBtn.onmouseout = () => refreshBtn.style.transform = 'scale(1)';
+        refreshBtn.onclick = () => {
+            showToast('Syncing pending submissions...', 'info');
+            syncPendingSubmissions();
+        };
+        
+        document.body.appendChild(refreshBtn);
+    }
+    
+    // Export functions
+    window.loadStudentDatabase = function() {
+        // Database is already loaded from embedded data
+        showToast(`Database already loaded (${studentDatabase.length} students)`, 'info');
+    };
 </script>
 </body>
 </html>
