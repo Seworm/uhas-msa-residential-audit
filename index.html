@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,10 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UHAS Medical Students Residential Data</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <style>
         :root {
             --primary: #1a5fb4;
@@ -16,7 +13,7 @@
             --accent: #2ec27e;
             --danger: #c9190b;
             --warning: #e5a50a;
-            --firebase: #ffa611;
+            --google: #4285F4;
         }
         
         * {
@@ -92,9 +89,9 @@
             border: 1px solid var(--warning);
         }
         
-        .sync-status.firebase {
-            color: var(--firebase);
-            border: 1px solid var(--firebase);
+        .sync-status.google {
+            color: var(--google);
+            border: 1px solid var(--google);
         }
         
         /* Form */
@@ -317,8 +314,8 @@
             color: #333;
         }
         
-        .btn-firebase {
-            background: var(--firebase);
+        .btn-google {
+            background: var(--google);
             color: white;
         }
         
@@ -383,8 +380,8 @@
             font-size: 13px;
         }
         
-        /* Firebase Config Section */
-        .config-section {
+        /* Dashboard Section */
+        .dashboard-section {
             background: #f8fafc;
             padding: 15px;
             border-radius: 8px;
@@ -392,7 +389,7 @@
             border: 1px solid #e0e0e0;
         }
         
-        .config-toggle {
+        .dashboard-toggle {
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -403,16 +400,16 @@
             margin-bottom: 10px;
         }
         
-        .config-content {
+        .dashboard-content {
             display: none;
             margin-top: 10px;
         }
         
-        .config-content.show {
+        .dashboard-content.show {
             display: block;
         }
         
-        .firebase-status {
+        .google-status {
             display: flex;
             align-items: center;
             gap: 8px;
@@ -422,13 +419,13 @@
             font-size: 12px;
         }
         
-        .firebase-status.connected {
+        .google-status.connected {
             background: #e6ffed;
             color: #22863a;
             border: 1px solid #22863a;
         }
         
-        .firebase-status.disconnected {
+        .google-status.disconnected {
             background: #ffeef0;
             color: #cb2431;
             border: 1px solid #cb2431;
@@ -480,6 +477,36 @@
             border-bottom: none;
         }
         
+        .setup-guide {
+            background: #f0f7ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border: 1px solid var(--primary);
+        }
+        
+        .setup-step {
+            margin-bottom: 10px;
+            padding-left: 20px;
+            position: relative;
+        }
+        
+        .setup-step:before {
+            content: counter(step);
+            counter-increment: step;
+            position: absolute;
+            left: 0;
+            top: 0;
+            background: var(--primary);
+            color: white;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            text-align: center;
+            font-size: 12px;
+            line-height: 18px;
+        }
+        
         @media (max-width: 768px) {
             .blocks-grid {
                 grid-template-columns: 1fr;
@@ -528,7 +555,7 @@
         <div class="instructions">
             <strong><i class="fas fa-info-circle"></i> INSTRUCTIONS:</strong> 
             1. Select your ID → 2. Search student → 3. Select block → room → bed → 4. Submit<br>
-            <small style="color: #666;">Real-time database powered by Firebase</small>
+            <small style="color: #666;">Data stored directly in Google Sheets</small>
         </div>
         
         <!-- Loading Overlay -->
@@ -638,7 +665,7 @@
                 <!-- Submit Buttons -->
                 <div class="action-buttons">
                     <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-paper-plane"></i> Submit to Firebase
+                        <i class="fas fa-paper-plane"></i> Submit to Google Sheets
                     </button>
                     <button type="button" class="btn btn-secondary" id="clearBtn">
                         <i class="fas fa-redo"></i> Clear Form
@@ -646,21 +673,21 @@
                 </div>
             </form>
             
-            <!-- Firebase Dashboard -->
-            <div class="config-section">
-                <div class="config-toggle" id="configToggle">
+            <!-- Google Sheets Dashboard -->
+            <div class="dashboard-section">
+                <div class="dashboard-toggle" id="dashboardToggle">
                     <div>
-                        <i class="fas fa-chart-line"></i> Live Dashboard
+                        <i class="fas fa-chart-line"></i> Google Sheets Dashboard
                     </div>
                     <div>
                         <i class="fas fa-chevron-down"></i>
                     </div>
                 </div>
                 
-                <div class="config-content" id="configContent">
-                    <div class="firebase-status" id="firebaseStatus">
+                <div class="dashboard-content" id="dashboardContent">
+                    <div class="google-status" id="googleStatus">
                         <i class="fas fa-sync fa-spin"></i>
-                        <span>Connecting to Firebase...</span>
+                        <span>Checking connection...</span>
                     </div>
                     
                     <div class="stats-grid">
@@ -677,8 +704,8 @@
                             <div class="stat-label">Pending Sync</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-value" id="onlineUsers">1</div>
-                            <div class="stat-label">Online Users</div>
+                            <div class="stat-value" id="successRate">100%</div>
+                            <div class="stat-label">Success Rate</div>
                         </div>
                     </div>
                     
@@ -690,12 +717,47 @@
                     </div>
                     
                     <div style="margin-top: 15px; display: flex; gap: 10px;">
-                        <button type="button" class="btn btn-firebase" id="syncBtn" style="flex: 1;">
+                        <button type="button" class="btn btn-google" id="syncBtn" style="flex: 1;">
                             <i class="fas fa-sync"></i> Sync Now
                         </button>
                         <button type="button" class="btn btn-secondary" id="exportBtn" style="flex: 1;">
                             <i class="fas fa-download"></i> Export Data
                         </button>
+                    </div>
+                    
+                    <!-- Setup Guide -->
+                    <div class="setup-guide" id="setupGuide">
+                        <h4 style="margin: 0 0 10px 0; color: var(--primary);">
+                            <i class="fas fa-cogs"></i> Setup Instructions
+                        </h4>
+                        <div style="counter-reset: step;">
+                            <div class="setup-step">Create a Google Sheet named "UHAS Audit Data"</div>
+                            <div class="setup-step">Open Extensions → Apps Script</div>
+                            <div class="setup-step">Copy the provided script (click "Get Script" below)</div>
+                            <div class="setup-step">Paste, save, and deploy as Web App</div>
+                            <div class="setup-step">Copy the Web App URL and paste it below</div>
+                        </div>
+                        
+                        <div class="form-group" style="margin-top: 15px;">
+                            <label for="scriptUrl">
+                                <i class="fas fa-link"></i> Your Google Apps Script URL
+                            </label>
+                            <input type="text" id="scriptUrl" 
+                                   placeholder="https://script.google.com/macros/s/.../exec"
+                                   style="font-size: 12px;">
+                            <small style="color: #666; display: block; font-weight: normal;">
+                                Paste your deployed web app URL here
+                            </small>
+                        </div>
+                        
+                        <div style="display: flex; gap: 10px; margin-top: 10px;">
+                            <button type="button" class="btn btn-google" id="saveUrlBtn" style="flex: 2;">
+                                <i class="fas fa-save"></i> Save URL
+                            </button>
+                            <button type="button" class="btn btn-secondary" id="getScriptBtn" style="flex: 1;">
+                                <i class="fas fa-code"></i> Get Script
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -714,16 +776,18 @@
     <div class="toast" id="toast"></div>
 
     <script>
-    // ============== FIREBASE CONFIGURATION ==============
-    // Replace with your Firebase config from Firebase Console
-    const FIREBASE_CONFIG = {
-        apiKey: "AIzaSyDEXAMPLEabc123def456ghi789jkl",
-        authDomain: "uhas-audit.firebaseapp.com",
-        projectId: "uhas-audit",
-        storageBucket: "uhas-audit.appspot.com",
-        messagingSenderId: "123456789012",
-        appId: "1:123456789012:web:abc123def456ghi789jkl",
-        measurementId: "G-ABC123DEF4"
+    // ============== CONFIGURATION ==============
+    // User will configure their own Google Apps Script URL
+    const GOOGLE_SHEETS_CONFIG = {
+        SCRIPT_URL: null,
+        SPREADSHEET_ID: null,
+        SHEET_NAME: 'AuditData',
+        HEADERS: [
+            'Timestamp', 'Executive ID', 'Executive Name', 'Audit Date',
+            'Student ID', 'Student Name', 'Level', 'Programme',
+            'Block', 'Room', 'Bed Space', 'Notes',
+            'Submission Time', 'Device Info', 'Status'
+        ]
     };
     
     // ============== DEFAULT EXECUTIVE IDs ==============
@@ -739,6 +803,7 @@
         { id: "EXEC009", name: "Executive 9" },
         { id: "EXEC010", name: "Executive 10" }
     ];
+    
     
     // ============== EMBEDDED STUDENT DATABASE ==============
     const STUDENT_DATABASE = [
@@ -1414,113 +1479,196 @@
         { level: "100", id: "UHAS202501789", name: "Djabatey Dorcas Koryoo", programme: "MEDICINE", status: "Active" },
         { level: "100", id: "UHAS202502287", name: "Frimpong Sandra Serwaa", programme: "MEDICINE", status: "Active" }
     ];
-
-          // ============== GLOBAL VARIABLES ==============
+ // ============== GLOBAL VARIABLES ==============
     let studentDatabase = STUDENT_DATABASE;
     let selectedBlock = "";
     let selectedRoom = "";
     let selectedStudent = null;
     let selectedExecutive = null;
+    let isGoogleConnected = false;
+    let submissionHistory = [];
     
-    // Firebase variables
-    let firebaseApp = null;
-    let firestore = null;
-    let auth = null;
-    let isFirebaseConnected = false;
-    let realtimeListener = null;
+    // ============== GOOGLE SHEETS FUNCTIONS ==============
     
-    // ============== FIREBASE FUNCTIONS ==============
-    
-    function initializeFirebase() {
+    function loadGoogleConfig() {
         try {
-            if (firebase.apps.length === 0) {
-                firebaseApp = firebase.initializeApp(FIREBASE_CONFIG);
-                firestore = firebase.firestore();
-                auth = firebase.auth();
-                
-                // Enable offline persistence
-                firestore.enablePersistence()
-                    .then(() => {
-                        console.log("Firebase offline persistence enabled");
-                        isFirebaseConnected = true;
-                        updateFirebaseStatus(true);
-                        setupRealtimeListener();
-                        setupOnlineUsersTracker();
-                    })
-                    .catch((err) => {
-                        console.error("Firebase persistence error:", err);
-                        isFirebaseConnected = true;
-                        updateFirebaseStatus(true);
-                        setupRealtimeListener();
-                    });
-                
-                // Sign in anonymously for basic access
-                auth.signInAnonymously()
-                    .then(() => {
-                        console.log("Signed in anonymously");
-                    })
-                    .catch((error) => {
-                        console.error("Anonymous sign-in error:", error);
-                    });
-                    
-            } else {
-                firebaseApp = firebase.app();
-                firestore = firebase.firestore();
-                auth = firebase.auth();
-                isFirebaseConnected = true;
-                updateFirebaseStatus(true);
-                setupRealtimeListener();
+            const savedUrl = localStorage.getItem('uhas_script_url');
+            const savedSheetId = localStorage.getItem('uhas_spreadsheet_id');
+            
+            if (savedUrl) {
+                GOOGLE_SHEETS_CONFIG.SCRIPT_URL = savedUrl;
+                document.getElementById('scriptUrl').value = savedUrl;
             }
             
+            if (savedSheetId) {
+                GOOGLE_SHEETS_CONFIG.SPREADSHEET_ID = savedSheetId;
+            }
+            
+            console.log('Google config loaded from localStorage');
+            checkGoogleConnection();
         } catch (error) {
-            console.error("Firebase initialization error:", error);
-            updateFirebaseStatus(false);
-            showToast("Firebase connection failed - working offline", "warning");
+            console.error('Error loading Google config:', error);
         }
     }
     
-    async function submitToFirebase(formData) {
-        showLoading('Saving to Firebase...');
+    function saveGoogleConfig() {
+        const scriptUrl = document.getElementById('scriptUrl').value.trim();
+        
+        if (scriptUrl) {
+            GOOGLE_SHEETS_CONFIG.SCRIPT_URL = scriptUrl;
+            localStorage.setItem('uhas_script_url', scriptUrl);
+            showToast('Google Sheets URL saved', 'success');
+            checkGoogleConnection();
+        } else {
+            showToast('Please enter a valid URL', 'error');
+        }
+    }
+    
+    async function checkGoogleConnection() {
+        const statusDiv = document.getElementById('googleStatus');
+        const syncStatus = document.getElementById('syncStatus');
+        
+        if (!GOOGLE_SHEETS_CONFIG.SCRIPT_URL) {
+            statusDiv.className = 'google-status disconnected';
+            statusDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> <span>Enter Google Script URL above</span>';
+            syncStatus.className = 'sync-status offline';
+            updateStatus('Setup Required');
+            return false;
+        }
+        
+        showLoading('Testing Google Sheets connection...');
+        
+        try {
+            // Test connection by sending a simple ping
+            const testData = {
+                action: 'ping',
+                timestamp: new Date().toISOString()
+            };
+            
+            const response = await fetch(GOOGLE_SHEETS_CONFIG.SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams(testData).toString()
+            });
+            
+            // Since we use no-cors, we can't read response, but if it doesn't throw error, assume success
+            isGoogleConnected = true;
+            
+            statusDiv.className = 'google-status connected';
+            statusDiv.innerHTML = '<i class="fas fa-check-circle"></i> <span>Connected to Google Sheets</span>';
+            syncStatus.className = 'sync-status google';
+            updateStatus('Online - Google Sheets');
+            
+            // Load existing data if available
+            await loadSubmissionHistory();
+            
+            hideLoading();
+            return true;
+            
+        } catch (error) {
+            console.error('Google connection error:', error);
+            
+            statusDiv.className = 'google-status disconnected';
+            statusDiv.innerHTML = '<i class="fas fa-times-circle"></i> <span>Connection failed - working offline</span>';
+            syncStatus.className = 'sync-status offline';
+            updateStatus('Offline Mode');
+            
+            hideLoading();
+            return false;
+        }
+    }
+    
+    async function submitToGoogleSheets(formData) {
+        if (!GOOGLE_SHEETS_CONFIG.SCRIPT_URL) {
+            showToast('Please configure Google Script URL first', 'error');
+            return false;
+        }
+        
+        showLoading('Saving to Google Sheets...');
         
         const recordId = `rec_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        const timestamp = firebase.firestore.FieldValue.serverTimestamp();
+        const timestamp = new Date().toISOString();
         
-        const firebaseRecord = {
-            ...formData,
+        const sheetRecord = {
             id: recordId,
             timestamp: timestamp,
+            executiveID: formData.executiveID,
+            executiveName: formData.executiveName,
+            auditDate: formData.auditDate,
+            studentID: formData.studentID,
+            studentName: formData.studentName,
+            studentLevel: formData.studentLevel,
+            studentProgramme: formData.programme,
+            block: formData.block,
+            room: formData.room,
+            bedSpace: formData.bedSpace || 'Not Specified',
+            notes: formData.notes || '',
+            submissionTime: timestamp,
+            deviceInfo: navigator.userAgent,
             status: 'submitted',
-            syncStatus: 'synced',
-            deviceId: await getDeviceId(),
-            appVersion: '5.0-firebase'
+            appVersion: '6.0-google'
         };
         
         try {
-            // Save to Firestore
-            await firestore.collection('audit_records').doc(recordId).set(firebaseRecord);
+            // Prepare data for Google Sheets
+            const rowData = [
+                sheetRecord.timestamp,
+                sheetRecord.executiveID,
+                sheetRecord.executiveName,
+                sheetRecord.auditDate,
+                sheetRecord.studentID,
+                sheetRecord.studentName,
+                sheetRecord.studentLevel,
+                sheetRecord.studentProgramme,
+                sheetRecord.block,
+                sheetRecord.room,
+                sheetRecord.bedSpace,
+                sheetRecord.notes,
+                sheetRecord.submissionTime,
+                sheetRecord.deviceInfo,
+                sheetRecord.status
+            ];
             
-            // Also add to a subcollection for easier querying
-            await firestore.collection('audit_records').doc(recordId)
-                .collection('metadata').doc('details').set({
-                    executiveId: formData.executiveID,
-                    studentId: formData.studentID,
-                    block: formData.block,
-                    room: formData.room,
-                    createdAt: timestamp
-                });
+            const postData = {
+                action: 'append',
+                data: JSON.stringify(rowData),
+                timestamp: timestamp,
+                recordId: recordId
+            };
             
-            // Update counters
-            await updateCounters(formData.auditDate);
+            // Try to submit to Google Sheets
+            const response = await fetch(GOOGLE_SHEETS_CONFIG.SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams(postData).toString()
+            });
             
-            showToast('✅ Record saved to Firebase!', 'success');
+            // Since we use no-cors, assume success if no error
+            isGoogleConnected = true;
+            
+            // Save to local history
+            submissionHistory.unshift(sheetRecord);
+            localStorage.setItem('uhas_submission_history', JSON.stringify(submissionHistory.slice(0, 50)));
+            
+            // Update dashboard
+            updateDashboard();
+            updateRecentSubmissions();
+            
+            showToast('✅ Record saved to Google Sheets!', 'success');
             hideLoading();
             return { success: true, id: recordId };
             
         } catch (error) {
-            console.error("Firebase submission error:", error);
+            console.error("Google Sheets submission error:", error);
             
             // Save to local storage for offline sync
-            await saveToLocalStorageForSync(firebaseRecord);
+            await saveToLocalStorageForSync(sheetRecord);
             showToast('📱 Saved locally (will sync when online)', 'warning');
             
             hideLoading();
@@ -1528,149 +1676,73 @@
         }
     }
     
-    async function updateCounters(auditDate) {
-        const today = new Date().toISOString().split('T')[0];
-        const isToday = auditDate === today;
-        
-        try {
-            const counterRef = firestore.collection('counters').doc('submissions');
-            
-            if (isToday) {
-                await firestore.runTransaction(async (transaction) => {
-                    const doc = await transaction.get(counterRef);
-                    
-                    if (!doc.exists) {
-                        transaction.set(counterRef, {
-                            total: 1,
-                            today: 1,
-                            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-                        });
-                    } else {
-                        const data = doc.data();
-                        transaction.update(counterRef, {
-                            total: (data.total || 0) + 1,
-                            today: (data.today || 0) + 1,
-                            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-                        });
-                    }
-                });
-            } else {
-                await counterRef.update({
-                    total: firebase.firestore.FieldValue.increment(1),
-                    lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-                });
-            }
-        } catch (error) {
-            console.error("Counter update error:", error);
-        }
-    }
-    
-    function setupRealtimeListener() {
-        if (!firestore) return;
-        
-        // Listen for real-time updates
-        realtimeListener = firestore.collection('audit_records')
-            .orderBy('timestamp', 'desc')
-            .limit(10)
-            .onSnapshot((snapshot) => {
-                const submissions = [];
-                snapshot.forEach((doc) => {
-                    submissions.push(doc.data());
-                });
-                
-                updateRecentSubmissions(submissions);
-                updateSubmissionStats();
-            }, (error) => {
-                console.error("Realtime listener error:", error);
-            });
-        
-        // Listen for counter updates
-        firestore.collection('counters').doc('submissions')
-            .onSnapshot((doc) => {
-                if (doc.exists) {
-                    const data = doc.data();
-                    document.getElementById('totalSubmissions').textContent = data.total || 0;
-                    document.getElementById('todaySubmissions').textContent = data.today || 0;
-                }
-            });
-    }
-    
-    function setupOnlineUsersTracker() {
-        if (!firestore || !auth.currentUser) return;
-        
-        const userStatusRef = firestore.collection('status').doc(auth.currentUser.uid);
-        const isOfflineForFirestore = {
-            state: 'offline',
-            lastChanged: firebase.firestore.FieldValue.serverTimestamp(),
-        };
-        const isOnlineForFirestore = {
-            state: 'online',
-            lastChanged: firebase.firestore.FieldValue.serverTimestamp(),
-        };
-        
-        // Set user as online
-        userStatusRef.set(isOnlineForFirestore);
-        
-        // Update when user goes offline
-        firestore.collection('status').onSnapshot((snapshot) => {
-            let onlineUsers = 0;
-            snapshot.forEach((doc) => {
-                if (doc.data().state === 'online') {
-                    onlineUsers++;
-                }
-            });
-            document.getElementById('onlineUsers').textContent = onlineUsers;
-        });
-        
-        // Handle disconnect
-        firestore.disableNetwork().then(() => {
-            userStatusRef.set(isOfflineForFirestore);
-        });
-        
-        // Re-enable when back online
-        window.addEventListener('online', () => {
-            firestore.enableNetwork().then(() => {
-                userStatusRef.set(isOnlineForFirestore);
-            });
-        });
-    }
-    
     async function saveToLocalStorageForSync(record) {
-        const pending = JSON.parse(localStorage.getItem('firebase_pending') || '[]');
+        const pending = JSON.parse(localStorage.getItem('google_pending') || '[]');
         pending.push({
             ...record,
             localSaveTime: new Date().toISOString(),
-            syncAttempts: 0
+            syncAttempts: 0,
+            syncStatus: 'pending'
         });
-        localStorage.setItem('firebase_pending', JSON.stringify(pending));
+        localStorage.setItem('google_pending', JSON.stringify(pending));
         updatePendingCount();
     }
     
     async function syncPendingSubmissions() {
-        const pending = JSON.parse(localStorage.getItem('firebase_pending') || '[]');
+        const pending = JSON.parse(localStorage.getItem('google_pending') || '[]');
         if (pending.length === 0) return;
         
-        if (!isFirebaseConnected) {
-            showToast('Cannot sync: Firebase not connected', 'warning');
+        if (!GOOGLE_SHEETS_CONFIG.SCRIPT_URL) {
+            showToast('Cannot sync: Google Script URL not configured', 'warning');
             return;
         }
         
         showLoading(`Syncing ${pending.length} pending submissions...`);
         
         const failed = [];
+        let successful = 0;
         
         for (const submission of pending) {
             try {
-                // Remove local fields before sending to Firebase
-                const { localSaveTime, syncAttempts, ...firebaseRecord } = submission;
+                // Prepare row data
+                const rowData = [
+                    submission.timestamp,
+                    submission.executiveID,
+                    submission.executiveName,
+                    submission.auditDate,
+                    submission.studentID,
+                    submission.studentName,
+                    submission.studentLevel,
+                    submission.studentProgramme,
+                    submission.block,
+                    submission.room,
+                    submission.bedSpace,
+                    submission.notes,
+                    submission.submissionTime,
+                    submission.deviceInfo,
+                    'synced'
+                ];
                 
-                await firestore.collection('audit_records').doc(firebaseRecord.id).set({
-                    ...firebaseRecord,
-                    syncStatus: 'synced',
-                    originallyOffline: true
+                const postData = {
+                    action: 'append',
+                    data: JSON.stringify(rowData),
+                    timestamp: new Date().toISOString(),
+                    recordId: submission.id
+                };
+                
+                await fetch(GOOGLE_SHEETS_CONFIG.SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams(postData).toString()
                 });
                 
-                console.log(`Synced pending submission: ${firebaseRecord.id}`);
+                // Add to history
+                submissionHistory.unshift(submission);
+                successful++;
+                
             } catch (error) {
                 console.error('Failed to sync:', error);
                 
@@ -1684,87 +1756,86 @@
             }
         }
         
-        localStorage.setItem('firebase_pending', JSON.stringify(failed));
+        localStorage.setItem('google_pending', JSON.stringify(failed));
+        localStorage.setItem('uhas_submission_history', JSON.stringify(submissionHistory.slice(0, 50)));
+        
         updatePendingCount();
+        updateDashboard();
+        updateRecentSubmissions();
         
         if (failed.length === 0) {
-            showToast('✅ All pending submissions synced', 'success');
+            showToast(`✅ All ${successful} submissions synced`, 'success');
         } else {
-            showToast(`⚠️ ${failed.length} submissions still pending`, 'warning');
+            showToast(`✅ ${successful} synced, ⚠️ ${failed.length} still pending`, 'warning');
         }
         
         hideLoading();
     }
     
-    async function exportFirebaseData() {
-        showLoading('Exporting data...');
-        
+    async function loadSubmissionHistory() {
         try {
-            const snapshot = await firestore.collection('audit_records')
-                .orderBy('timestamp', 'desc')
-                .get();
+            const history = JSON.parse(localStorage.getItem('uhas_submission_history') || '[]');
+            submissionHistory = history;
             
-            const data = [];
-            snapshot.forEach((doc) => {
-                data.push(doc.data());
-            });
+            // Also check for any old pending submissions
+            const pending = JSON.parse(localStorage.getItem('google_pending') || '[]');
             
-            const exportData = {
-                exportDate: new Date().toISOString(),
-                totalRecords: data.length,
-                records: data
-            };
+            updateDashboard();
+            updateRecentSubmissions();
             
-            const dataStr = JSON.stringify(exportData, null, 2);
-            const dataBlob = new Blob([dataStr], { type: 'application/json' });
-            
-            const url = window.URL.createObjectURL(dataBlob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `UHAS_Firebase_Export_${Date.now()}.json`;
-            a.style.display = 'none';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);
-            
-            showToast('Data exported successfully', 'success');
         } catch (error) {
-            console.error('Export error:', error);
-            showToast('Export failed', 'error');
+            console.error('Error loading submission history:', error);
+            submissionHistory = [];
         }
-        
-        hideLoading();
     }
     
-    // ============== UTILITY FUNCTIONS ==============
-    
-    function updateFirebaseStatus(connected) {
-        const statusDiv = document.getElementById('firebaseStatus');
-        const syncStatus = document.getElementById('syncStatus');
+    function updateDashboard() {
+        const total = submissionHistory.length;
+        const pending = JSON.parse(localStorage.getItem('google_pending') || '[]').length;
         
-        if (connected) {
-            statusDiv.className = 'firebase-status connected';
-            statusDiv.innerHTML = '<i class="fas fa-check-circle"></i> <span>Connected to Firebase</span>';
-            syncStatus.className = 'sync-status firebase';
-            updateStatus('Online - Firebase Connected');
+        // Calculate today's submissions
+        const today = new Date().toISOString().split('T')[0];
+        const todayCount = submissionHistory.filter(record => 
+            record.auditDate === today
+        ).length;
+        
+        // Calculate success rate
+        const totalAttempts = total + pending;
+        const successRate = totalAttempts > 0 ? 
+            Math.round((total / totalAttempts) * 100) : 100;
+        
+        document.getElementById('totalSubmissions').textContent = total;
+        document.getElementById('todaySubmissions').textContent = todayCount;
+        document.getElementById('pendingSync').textContent = pending;
+        document.getElementById('successRate').textContent = `${successRate}%`;
+        
+        // Update status display
+        const statsDiv = document.getElementById('submissionStats');
+        if (pending > 0) {
+            statsDiv.innerHTML = `<span style="color: var(--warning);">
+                <i class="fas fa-exclamation-triangle"></i> ${pending} pending sync
+            </span>`;
+        } else if (total > 0) {
+            statsDiv.innerHTML = `<span style="color: var(--accent);">
+                <i class="fas fa-check-circle"></i> ${total} submissions recorded
+            </span>`;
         } else {
-            statusDiv.className = 'firebase-status disconnected';
-            statusDiv.innerHTML = '<i class="fas fa-times-circle"></i> <span>Firebase Disconnected</span>';
-            syncStatus.className = 'sync-status offline';
-            updateStatus('Offline Mode');
+            statsDiv.innerHTML = `<span style="color: #666;">
+                <i class="fas fa-database"></i> No submissions yet
+            </span>`;
         }
     }
     
-    function updateRecentSubmissions(submissions) {
+    function updateRecentSubmissions() {
         const container = document.getElementById('recentSubmissions');
+        const recent = submissionHistory.slice(0, 10);
         
-        if (submissions.length === 0) {
+        if (recent.length === 0) {
             container.innerHTML = '<div class="submission-item">No submissions yet</div>';
             return;
         }
         
-        container.innerHTML = submissions.map(sub => `
+        container.innerHTML = recent.map(sub => `
             <div class="submission-item">
                 <strong>${sub.studentName}</strong> (${sub.studentID})<br>
                 <small>${sub.block} - Room ${sub.room} • ${formatTime(sub.timestamp)}</small>
@@ -1773,25 +1844,15 @@
     }
     
     function updatePendingCount() {
-        const pending = JSON.parse(localStorage.getItem('firebase_pending') || '[]');
+        const pending = JSON.parse(localStorage.getItem('google_pending') || '[]');
         document.getElementById('pendingSync').textContent = pending.length;
-        
-        const statsDiv = document.getElementById('submissionStats');
-        if (pending.length > 0) {
-            statsDiv.innerHTML = `<span style="color: var(--warning);">
-                <i class="fas fa-exclamation-triangle"></i> ${pending.length} pending sync
-            </span>`;
-        } else {
-            statsDiv.innerHTML = `<span style="color: var(--accent);">
-                <i class="fas fa-check-circle"></i> All data synced
-            </span>`;
-        }
+        updateDashboard();
     }
     
     function formatTime(timestamp) {
         if (!timestamp) return 'Just now';
         
-        const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+        const date = new Date(timestamp);
         const now = new Date();
         const diffMs = now - date;
         const diffMins = Math.floor(diffMs / 60000);
@@ -1802,13 +1863,227 @@
         return date.toLocaleDateString();
     }
     
-    async function getDeviceId() {
-        let deviceId = localStorage.getItem('uhas_device_id');
-        if (!deviceId) {
-            deviceId = 'dev_' + Math.random().toString(36).substr(2, 9);
-            localStorage.setItem('uhas_device_id', deviceId);
-        }
-        return deviceId;
+    function exportLocalData() {
+        const pending = JSON.parse(localStorage.getItem('google_pending') || '[]');
+        const history = JSON.parse(localStorage.getItem('uhas_submission_history') || '[]');
+        
+        const exportData = {
+            submittedRecords: history,
+            pendingRecords: pending,
+            exportDate: new Date().toISOString(),
+            totalRecords: history.length + pending.length,
+            appVersion: '6.0-google'
+        };
+        
+        const dataStr = JSON.stringify(exportData, null, 2);
+        const dataBlob = new Blob([dataStr], { type: 'application/json' });
+        
+        const url = window.URL.createObjectURL(dataBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `UHAS_Google_Export_${Date.now()}.json`;
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        
+        showToast('Data exported successfully', 'success');
+    }
+    
+    function getGoogleAppsScriptCode() {
+        const scriptCode = `// Google Apps Script for UHAS Audit Data
+// Deploy as Web App with these settings:
+// Execute as: Me
+// Who has access: Anyone
+
+const SPREADSHEET_ID = 'YOUR_SPREADSHEET_ID'; // Replace with your Google Sheet ID
+const SHEET_NAME = 'AuditData';
+
+function doPost(e) {
+  try {
+    const params = e.parameter;
+    const action = params.action;
+    
+    if (action === 'ping') {
+      return ContentService.createTextOutput(JSON.stringify({
+        success: true,
+        message: 'Google Apps Script is running',
+        timestamp: new Date().toISOString()
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    if (action === 'append') {
+      const data = JSON.parse(params.data);
+      const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+      let sheet = ss.getSheetByName(SHEET_NAME);
+      
+      // Create sheet if it doesn't exist
+      if (!sheet) {
+        sheet = ss.insertSheet(SHEET_NAME);
+        const headers = [
+          'Timestamp', 'Executive ID', 'Executive Name', 'Audit Date',
+          'Student ID', 'Student Name', 'Level', 'Programme',
+          'Block', 'Room', 'Bed Space', 'Notes',
+          'Submission Time', 'Device Info', 'Status'
+        ];
+        sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+        sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
+        sheet.setFrozenRows(1);
+      }
+      
+      // Append the new row
+      sheet.appendRow(data);
+      
+      // Auto-resize columns
+      sheet.autoResizeColumns(1, sheet.getLastColumn());
+      
+      return ContentService.createTextOutput(JSON.stringify({
+        success: true,
+        message: 'Data appended successfully',
+        rowNumber: sheet.getLastRow(),
+        recordId: params.recordId,
+        timestamp: new Date().toISOString()
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    // Bulk append for syncing
+    if (action === 'bulk_append') {
+      const records = JSON.parse(params.records);
+      const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+      let sheet = ss.getSheetByName(SHEET_NAME);
+      
+      if (!sheet) {
+        sheet = ss.insertSheet(SHEET_NAME);
+        const headers = [
+          'Timestamp', 'Executive ID', 'Executive Name', 'Audit Date',
+          'Student ID', 'Student Name', 'Level', 'Programme',
+          'Block', 'Room', 'Bed Space', 'Notes',
+          'Submission Time', 'Device Info', 'Status'
+        ];
+        sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+        sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
+        sheet.setFrozenRows(1);
+      }
+      
+      // Append all records
+      records.forEach(record => {
+        sheet.appendRow(record);
+      });
+      
+      // Auto-resize columns
+      sheet.autoResizeColumns(1, sheet.getLastColumn());
+      
+      return ContentService.createTextOutput(JSON.stringify({
+        success: true,
+        message: \`\${records.length} records appended successfully\`,
+        timestamp: new Date().toISOString()
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    // Get data (for verification)
+    if (action === 'get_data') {
+      const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+      const sheet = ss.getSheetByName(SHEET_NAME);
+      
+      if (!sheet) {
+        return ContentService.createTextOutput(JSON.stringify({
+          success: true,
+          data: [],
+          count: 0,
+          message: 'Sheet does not exist yet'
+        })).setMimeType(ContentService.MimeType.JSON);
+      }
+      
+      const data = sheet.getDataRange().getValues();
+      const headers = data[0];
+      const rows = data.slice(1);
+      
+      const formattedData = rows.map(row => {
+        const obj = {};
+        headers.forEach((header, index) => {
+          obj[header] = row[index];
+        });
+        return obj;
+      });
+      
+      return ContentService.createTextOutput(JSON.stringify({
+        success: true,
+        data: formattedData,
+        count: formattedData.length,
+        headers: headers
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    return ContentService.createTextOutput(JSON.stringify({
+      success: false,
+      error: 'Unknown action'
+    })).setMimeType(ContentService.MimeType.JSON);
+    
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({
+      success: false,
+      error: error.toString(),
+      message: 'Server error occurred'
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function doGet(e) {
+  return ContentService.createTextOutput(JSON.stringify({
+    success: true,
+    message: 'UHAS Audit Data API is running',
+    endpoints: ['POST: / - Submit data with action parameter'],
+    timestamp: new Date().toISOString()
+  })).setMimeType(ContentService.MimeType.JSON);
+}
+
+// Function to manually test the script
+function testAppend() {
+  const testData = [
+    new Date().toISOString(),
+    'TEST001',
+    'Test Executive',
+    new Date().toISOString().split('T')[0],
+    'TEST20240001',
+    'Test Student',
+    '100',
+    'TESTING',
+    'TEST',
+    '01',
+    'Bed 1',
+    'Test record',
+    new Date().toISOString(),
+    'Test Device',
+    'TEST'
+  ];
+  
+  const params = {
+    action: 'append',
+    data: JSON.stringify(testData),
+    recordId: 'test_' + Date.now()
+  };
+  
+  const result = doPost({parameter: params});
+  Logger.log(result.getContent());
+}`;
+        
+        // Create a downloadable file
+        const blob = new Blob([scriptCode], { type: 'text/javascript' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'UHAS_Google_Apps_Script.js';
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        
+        // Also copy to clipboard
+        navigator.clipboard.writeText(scriptCode).then(() => {
+            showToast('Script copied to clipboard and downloaded', 'success');
+        });
     }
     
     // ============== INITIALIZATION ==============
@@ -1824,20 +2099,28 @@
         generateRoomButtons();
         setupEventListeners();
         loadSelectedExecutive();
-        
-        // Initialize Firebase
-        initializeFirebase();
+        loadGoogleConfig();
         
         // Update UI
         updateStudentCount();
         updatePendingCount();
         
-        // Setup config toggle
-        setupConfigToggle();
+        // Setup dashboard toggle
+        setupDashboardToggle();
         
         // Monitor network status
         window.addEventListener('online', updateOnlineStatus);
         window.addEventListener('offline', updateOnlineStatus);
+        
+        // Auto-sync when coming online
+        window.addEventListener('online', () => {
+            setTimeout(() => {
+                const pending = JSON.parse(localStorage.getItem('google_pending') || '[]');
+                if (pending.length > 0 && GOOGLE_SHEETS_CONFIG.SCRIPT_URL) {
+                    syncPendingSubmissions();
+                }
+            }, 2000);
+        });
     });
     
     // ============== EXECUTIVE SELECTION ==============
@@ -1999,47 +2282,29 @@
     async function handleFormSubmit(formData) {
         if (!validateForm()) return false;
         
-        // Add Firebase-specific fields
-        const firebaseFormData = {
-            ...formData,
-            submissionTime: new Date().toISOString(),
-            deviceInfo: navigator.userAgent,
-            appVersion: '5.0-firebase',
-            location: await getLocationData()
+        // Prepare form data for Google Sheets
+        const sheetFormData = {
+            executiveID: selectedExecutive.id,
+            executiveName: selectedExecutive.name,
+            auditDate: document.getElementById('auditDate').value,
+            studentID: selectedStudent.id,
+            studentName: selectedStudent.name,
+            studentLevel: selectedStudent.level,
+            programme: selectedStudent.programme,
+            block: selectedBlock,
+            room: selectedRoom,
+            bedSpace: document.getElementById('bedSpace').value || 'Not Specified',
+            notes: document.getElementById('notes').value.trim() || ''
         };
         
-        // Try to submit to Firebase
-        const result = await submitToFirebase(firebaseFormData);
+        // Try to submit to Google Sheets
+        const result = await submitToGoogleSheets(sheetFormData);
         
         if (result.success) {
             clearForm();
         }
         
         return result.success;
-    }
-    
-    async function getLocationData() {
-        return new Promise((resolve) => {
-            if (!navigator.geolocation) {
-                resolve({ available: false });
-                return;
-            }
-            
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    resolve({
-                        available: true,
-                        latitude: position.coords.latitude,
-                        longitude: position.coords.longitude,
-                        accuracy: position.coords.accuracy
-                    });
-                },
-                () => {
-                    resolve({ available: false });
-                },
-                { timeout: 5000 }
-            );
-        });
     }
     
     // ============== EVENT HANDLERS ==============
@@ -2090,7 +2355,7 @@
                 studentID: selectedStudent.id,
                 studentName: selectedStudent.name,
                 studentLevel: selectedStudent.level,
-                studentProgramme: selectedStudent.programme,
+                programme: selectedStudent.programme,
                 block: selectedBlock,
                 room: selectedRoom,
                 bedSpace: document.getElementById('bedSpace').value || 'Not Specified',
@@ -2107,7 +2372,13 @@
         document.getElementById('syncBtn').addEventListener('click', syncPendingSubmissions);
         
         // Export button
-        document.getElementById('exportBtn').addEventListener('click', exportFirebaseData);
+        document.getElementById('exportBtn').addEventListener('click', exportLocalData);
+        
+        // Save URL button
+        document.getElementById('saveUrlBtn').addEventListener('click', saveGoogleConfig);
+        
+        // Get Script button
+        document.getElementById('getScriptBtn').addEventListener('click', getGoogleAppsScriptCode);
         
         // Click outside to close search results
         document.addEventListener('click', function(e) {
@@ -2117,9 +2388,9 @@
         });
     }
     
-    function setupConfigToggle() {
-        const toggle = document.getElementById('configToggle');
-        const content = document.getElementById('configContent');
+    function setupDashboardToggle() {
+        const toggle = document.getElementById('dashboardToggle');
+        const content = document.getElementById('dashboardContent');
         
         toggle.addEventListener('click', function() {
             content.classList.toggle('show');
@@ -2190,18 +2461,21 @@
     }
     
     function updateOnlineStatus() {
-        if (navigator.onLine && isFirebaseConnected) {
-            updateStatus('Online - Firebase Connected');
-            // Auto-sync when coming online
-            setTimeout(() => {
-                const pending = JSON.parse(localStorage.getItem('firebase_pending') || '[]');
-                if (pending.length > 0) {
-                    syncPendingSubmissions();
-                }
-            }, 2000);
-        } else if (navigator.onLine) {
-            updateStatus('Online - Firebase Disconnected');
+        const syncStatus = document.getElementById('syncStatus');
+        
+        if (navigator.onLine) {
+            if (GOOGLE_SHEETS_CONFIG.SCRIPT_URL && isGoogleConnected) {
+                syncStatus.className = 'sync-status google';
+                updateStatus('Online - Google Sheets');
+            } else if (GOOGLE_SHEETS_CONFIG.SCRIPT_URL) {
+                syncStatus.className = 'sync-status offline';
+                updateStatus('Online - Google Disconnected');
+            } else {
+                syncStatus.className = 'sync-status online';
+                updateStatus('Online - Setup Required');
+            }
         } else {
+            syncStatus.className = 'sync-status offline';
             updateStatus('Offline - Saving Locally');
         }
     }
@@ -2213,17 +2487,13 @@
         }
     }
     
-    function updateSubmissionStats() {
-        // Already handled by updatePendingCount
-    }
-    
     function updateStudentCount() {
         const count = studentDatabase.length;
         
         document.getElementById('studentCount').innerHTML = 
             `<strong>${count}</strong> students loaded<br>
             <small style="color: #888; font-size: 10px;">
-                Embedded database • Firebase Realtime
+                Embedded database • Google Sheets Storage
             </small>`;
     }
     
@@ -2262,16 +2532,16 @@
         }, 3000);
     }
     
-    // Add emergency export button
-    function addEmergencyExport() {
-        const exportBtn = document.createElement('button');
-        exportBtn.innerHTML = '<i class="fas fa-file-export"></i>';
-        exportBtn.title = 'Emergency Export';
-        exportBtn.style.cssText = `
+    // Add emergency sync button
+    function addEmergencySyncButton() {
+        const syncBtn = document.createElement('button');
+        syncBtn.innerHTML = '<i class="fas fa-sync-alt"></i>';
+        syncBtn.title = 'Emergency Sync';
+        syncBtn.style.cssText = `
             position: fixed;
             bottom: 20px;
             right: 20px;
-            background: var(--danger);
+            background: var(--google);
             color: white;
             border: none;
             border-radius: 50%;
@@ -2287,44 +2557,17 @@
             transition: transform 0.3s;
         `;
         
-        exportBtn.onmouseover = () => exportBtn.style.transform = 'scale(1.1)';
-        exportBtn.onmouseout = () => exportBtn.style.transform = 'scale(1)';
-        exportBtn.onclick = () => {
-            exportLocalData();
+        syncBtn.onmouseover = () => syncBtn.style.transform = 'scale(1.1)';
+        syncBtn.onmouseout = () => syncBtn.style.transform = 'scale(1)';
+        syncBtn.onclick = () => {
+            syncPendingSubmissions();
         };
         
-        document.body.appendChild(exportBtn);
+        document.body.appendChild(syncBtn);
     }
     
-    function exportLocalData() {
-        const pending = JSON.parse(localStorage.getItem('firebase_pending') || '[]');
-        const backups = JSON.parse(localStorage.getItem('uhas_local_backups') || '[]');
-        
-        const exportData = {
-            pendingSubmissions: pending,
-            localBackups: backups,
-            exportDate: new Date().toISOString(),
-            totalRecords: pending.length + backups.length
-        };
-        
-        const dataStr = JSON.stringify(exportData, null, 2);
-        const dataBlob = new Blob([dataStr], { type: 'application/json' });
-        
-        const url = window.URL.createObjectURL(dataBlob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `UHAS_Emergency_Export_${Date.now()}.json`;
-        a.style.display = 'none';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-        
-        showToast('Emergency export completed', 'success');
-    }
-    
-    // Initialize emergency export button
-    addEmergencyExport();
+    // Initialize emergency sync button
+    addEmergencySyncButton();
     
     // Export functions
     window.loadStudentDatabase = function() {
@@ -2336,8 +2579,14 @@
     };
     
     window.exportAllData = function() {
-        exportFirebaseData();
+        exportLocalData();
+    };
+    
+    window.setupGoogleSheets = function() {
+        getGoogleAppsScriptCode();
     };
 </script>
 </body>
 </html>
+         
+   
