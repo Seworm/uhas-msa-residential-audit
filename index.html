@@ -235,7 +235,7 @@
             display: none; /* Hidden by default */
         }
         
-        .room-section.show {
+        .room-section.active {
             display: block; /* Shown when block is selected */
         }
         
@@ -839,33 +839,33 @@
     
     // ============== FIXED EVENT HANDLERS ==============
     function setupEventListeners() {
-        // Block selection - FIXED
-        document.querySelectorAll('.block-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                console.log('Block clicked:', this.dataset.block);
-                
-                // Remove selection from all blocks
-                document.querySelectorAll('.block-btn').forEach(b => {
-                    b.classList.remove('selected');
-                });
-                
-                // Select current block
-                this.classList.add('selected');
-                selectedBlock = this.dataset.block;
-                
-                // Show room selection using class instead of style
-                const roomSection = document.getElementById('roomSection');
-                roomSection.classList.add('show');
-                
-                // Clear any previous room selection
-                selectedRoom = "";
-                document.querySelectorAll('.room-btn').forEach(r => {
-                    r.classList.remove('selected');
-                });
-                
-                showToast(`Selected ${selectedBlock} block`, 'info');
-            });
+        / Block selection - UPDATED
+document.querySelectorAll('.block-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        console.log('Block clicked:', this.dataset.block);
+        
+        // Remove selection from all blocks
+        document.querySelectorAll('.block-btn').forEach(b => {
+            b.classList.remove('selected');
         });
+        
+        // Select current block
+        this.classList.add('selected');
+        selectedBlock = this.dataset.block;
+        
+        // Show room selection - UPDATED: use 'active' class instead of 'show'
+        const roomSection = document.getElementById('roomSection');
+        roomSection.classList.add('active');
+        
+        // Clear any previous room selection
+        selectedRoom = "";
+        document.querySelectorAll('.room-btn').forEach(r => {
+            r.classList.remove('selected');
+        });
+        
+        showToast(`Selected ${selectedBlock} block`, 'info');
+    });
+});
         
         // Room selection - FIXED
         document.getElementById('roomsGrid').addEventListener('click', function(e) {
@@ -971,28 +971,29 @@
     
     // ============== UTILITY FUNCTIONS ==============
     function clearForm() {
-        selectedStudent = null;
-        selectedBlock = "";
-        selectedRoom = "";
-        
-        document.getElementById('studentSearch').value = '';
-        document.getElementById('studentInfo').style.display = 'none';
-        
-        // Hide room section using class
-        document.getElementById('roomSection').classList.remove('show');
-        
-        // Clear selections
-        document.querySelectorAll('.block-btn').forEach(b => b.classList.remove('selected'));
-        document.querySelectorAll('.room-btn').forEach(b => b.classList.remove('selected'));
-        
-        document.getElementById('bedSpace').value = '';
-        document.getElementById('notes').value = '';
-        
-        // Keep executive info and date
-        document.getElementById('auditDate').value = new Date().toISOString().split('T')[0];
-        
-        showToast('Form cleared', 'info');
-    }
+    selectedStudent = null;
+    selectedBlock = "";
+    selectedRoom = "";
+    
+    document.getElementById('studentSearch').value = '';
+    document.getElementById('studentInfo').style.display = 'none';
+    
+    // Hide room section - UPDATED
+    const roomSection = document.getElementById('roomSection');
+    roomSection.classList.remove('active');
+    
+    // Clear selections
+    document.querySelectorAll('.block-btn').forEach(b => b.classList.remove('selected'));
+    document.querySelectorAll('.room-btn').forEach(b => b.classList.remove('selected'));
+    
+    document.getElementById('bedSpace').value = '';
+    document.getElementById('notes').value = '';
+    
+    // Keep executive info and date
+    document.getElementById('auditDate').value = new Date().toISOString().split('T')[0];
+    
+    showToast('Form cleared', 'info');
+}
     
     function generateRoomButtons() {
         const roomsGrid = document.getElementById('roomsGrid');
@@ -1123,3 +1124,4 @@
 </script>
 </body>
 </html>
+
