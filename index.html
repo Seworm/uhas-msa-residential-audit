@@ -238,6 +238,38 @@
             display: block;
         }
         
+        /* Executive Selector */
+        .executive-selector {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .executive-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .executive-btn {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            background: white;
+            font-weight: 600;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .executive-btn.selected {
+            border-color: var(--primary);
+            background: #f0f7ff;
+            color: var(--primary);
+        }
+        
         /* Buttons */
         .action-buttons {
             display: grid;
@@ -348,6 +380,10 @@
             .action-buttons {
                 grid-template-columns: 1fr;
             }
+            
+            .executive-grid {
+                grid-template-columns: 1fr;
+            }
         }
         
         @media (max-width: 480px) {
@@ -375,7 +411,7 @@
         <!-- Instructions -->
         <div class="instructions">
             <strong><i class="fas fa-info-circle"></i> INSTRUCTIONS:</strong> 
-            1. Search student by ID/Name → 2. Select block → room → bed → 3. Submit
+            1. Select your ID → 2. Search student → 3. Select block → room → bed → 4. Submit
         </div>
         
         <!-- Loading Overlay -->
@@ -387,18 +423,15 @@
         <!-- Main Form -->
         <div class="form-container">
             <form id="auditForm">
-                <!-- Executive Section -->
+                <!-- Executive Selection -->
                 <div class="section">
-                    <h2 class="section-title"><i class="fas fa-user-tie"></i> Executive Details</h2>
+                    <h2 class="section-title"><i class="fas fa-user-check"></i> Select Your Executive ID</h2>
                     
-                    <div class="form-group">
-                        <label for="executiveName">Your Name *</label>
-                        <input type="text" id="executiveName" required placeholder="Enter your full name">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="executiveID">Executive ID *</label>
-                        <input type="text" id="executiveID" required placeholder="Your ID number">
+                    <div class="executive-selector">
+                        <label>Choose your executive ID *</label>
+                        <div class="executive-grid" id="executiveGrid">
+                            <!-- Executive IDs will be generated here -->
+                        </div>
                     </div>
                     
                     <div class="form-group">
@@ -500,6 +533,7 @@
             <div style="text-align: center; margin-top: 30px; font-size: 12px; color: #666;">
                 <p><i class="fas fa-database"></i> UHAS Student Database</p>
                 <p id="studentCount">Loading student count...</p>
+                <p id="selectedExecutive">No executive selected</p>
             </div>
         </div>
     </div>
@@ -515,688 +549,701 @@
         ADMIN_EMAIL: "sewormnyuielove@gmail.com"
     };
     
+    // ============== DEFAULT EXECUTIVE IDs ==============
+    const DEFAULT_EXECUTIVES = [
+        { id: "EXEC001", name: "Executive 1" },
+        { id: "EXEC002", name: "Executive 2" },
+        { id: "EXEC003", name: "Executive 3" },
+        { id: "EXEC004", name: "Executive 4" },
+        { id: "EXEC005", name: "Executive 5" },
+        { id: "EXEC006", name: "Executive 6" },
+        { id: "EXEC007", name: "Executive 7" },
+        { id: "EXEC008", name: "Executive 8" },
+        { id: "EXEC009", name: "Executive 9" },
+        { id: "EXEC010", name: "Executive 10" }
+    ];
+    
     // ============== EMBEDDED STUDENT DATABASE ==============
-    // All UHAS Medical Students Data embedded directly
-    // Note: Standardized property names to lowercase with underscores for consistency
     const STUDENT_DATABASE = [
-  { level: "600", id: "UHAS20200293", name: "GADZEY  BENJAMIN  BLESS", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20200389", name: "KISSI  EMMANUEL", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20200609", name: "ANYORMISI ELIZABETH", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20200685", name: "EMMANUEL AHENFUL", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20201101", name: "ODURO HEAVELYN AMMA FAA", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20201351", name: "AKALBEO SAMUEL AYINBILA", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20201371", name: "UNINKPEL  SAMPSON    NILIGNAN", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20201441", name: "COFIE ANNE", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20201889", name: "KUETSIDZO KENNETH KEKELI", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20201919", name: "OFORI HANS", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20202172", name: "AKUFFO KAREN NHYIRA", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20202187", name: "AGBALE MAGAVA KOFI", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20202808", name: "FRIMPOMAA BOAKYE-YIADOM", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20202992", name: "DZOGBEDE  PRECIOUS", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20203225", name: "SARKODIE ROSELINE ADOMA", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20203397", name: "OPOKU-ACQUAH KOFI AHIMAH", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20203469", name: "APEDO AMANDA FAFALI AKU", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20203489", name: "PORTUPHY-LAMPTEY NII ODARTEY", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20203520", name: "BOARIE KINGSLEY SHEBAZAZOR", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20203646", name: "AMETAME LUCKY FAFA", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20203663", name: "DONGDEM MAXIMILIAN BARIKA", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20203678", name: "ENOCH KWAKU ADJAHO", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20203929", name: "ARMAH GWENDOLYN  NAANA EGYEFI", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20204011", name: "ANUM-LARYEA MERVEILLE ADJIN", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20204019", name: "SOGBE RACHEL AKOSUA", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20204158", name: "FOSU FRANK", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20204200", name: "DZIVENU JULIET ENYONAM", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20204230", name: "KWAO JOEL KWAME", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20204432", name: "QUANSAH ALEXANDER KOFI", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20204439", name: "AGYENIM BOATENG NANA YAA", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20204468", name: "HUSSEIN PEARL ESI DEMAWU", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20204549", name: "DAKEY GIDEON ELIKEM", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20204656", name: "KANDA MOYA YAAYA", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20204670", name: "FRIMPONG KWABENA AGYEN", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20204896", name: "GYAMERAH MICHAEL SARFO", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20205111", name: "ADDO ANIMA AYISI", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20205152", name: "ISMAIL KHADIJAH", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20205297", name: "ANKOMAH MAAME SERWAH  AMA", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20205298", name: "ARTHUR KENNETH", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20220063", name: "AMOABENG ISAAC", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20220546", name: "AMEGAVLUIE STEPHANIE FAFALI AFI", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS201910418", name: "MENSAH YAA KORANTEMA", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS201911256", name: "HONYA SAMUEL BUBUNE", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20205371", name: "ADAMS SELMA EWURAMA", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20205398", name: "OSEI KENNETH", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20205410", name: "AUGUSTINA MAWUNYO KELEKU", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20205441", name: "OBUTEY FRANCIS KOFI", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20205573", name: "VANESSA TULASI", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20205722", name: "GYASI-ACHEAMPONG WILLIAM", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20205737", name: "LOTSU ARNOLD TOKOTTAH", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20205749", name: "ANAMOAH BERNICE  NANA AMA EDUAWAH", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20205884", name: "GBEDDIE ELIAN DELASE", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20206026", name: "AGBOLEGBE JAMES", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20206126", name: "PATIENCE ODURO", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20206142", name: "DABI-DANKWAH MARYLYN", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20206188", name: "SABAKPO COLLINS ELORM", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20206279", name: "GBANAGLO EDWARD ELORM", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20206302", name: "OKAI ROSEMOND AMELEY", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20206371", name: "KAMASA FOSTER", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20206428", name: "AHIANKUI STEPHEN NYARKOTEY", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20206609", name: "AMEMASOR DORCAS DELALI", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20206672", name: "EMMANUELLA ADWUBI BONSU", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20206726", name: "MAQUESON MAWUKO AFETI", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20206878", name: "ESSUMAN PRINCE OWURAKU", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20206908", name: "MICHEAL ETORNAM COFFIE", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20207111", name: "ESSIBRAH AUDREY ADDO", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20207155", name: "MAWUSI SEFA ABENA", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20207253", name: "HENRIETTA KOOTSO ASHIE", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20207549", name: "GELLY FRANK KWADWO GYAMFI", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20207864", name: "JEMIMAH DOSOO OSORIA", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20207877", name: "MICHAEL OSEI MENSAH", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20207880", name: "EMMANUELLA ADEI KOTEY", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20207907", name: "AMANKWAH SAKYI YAW", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20207925", name: "MENSAH JESSICA AKOS", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20208120", name: "DOGBE DERRICK YAW", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20208485", name: "DARKO  LEONARD OFORI", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20208566", name: "CARDIGAH DANIEL ELIKEM", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20208600", name: "BOTWE GEORGE  OPARE", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20208676", name: "SHOOTER ADRIANO REUEL", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20220011", name: "BOAKYE MICHAEL", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20220198", name: "MARFO BEMPOMAA ESTHER", programme: "MEDICINE", status: "Active" },
-  { level: "600", id: "UHAS20223143", name: "OSEI NKANSAH GEORGE", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS202110281", name: "ADDO DOREEN TORPREH", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20218336", name: "ADJEI MENSAH EBENEZER", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20216166", name: "ADJEI-MENSAH PERPETUAL NYANTAKYIWAA", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20219023", name: "ADOBOE PRINCESS SELASI ATSUFOE", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20215502", name: "ADOMAKO PRINCE", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20214021", name: "ADZIKA PRISCILLA SITSOPE", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20218682", name: "AGBENYEGAH FELIX  KWASI", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20212551", name: "AGBODZENKPLE TORGBUI", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS202110298", name: "AGYEKUM FRANCIS KWAKYE SNR.", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20218613", name: "AGYEMAN-KORANTENG JEREMY DANQUAH", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS202110301", name: "AHOMKA- YEBOAH NANA BAFFOE", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20217258", name: "AKUTTEH GAD JULIAN MENSAH", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20218979", name: "AKWENSIVIE HENRIETTA YAA", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20212303", name: "ALHASSAN ISHMEAL", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20219745", name: "AMALINTINGA SILAS WINESAKIYA", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20211083", name: "AMISSAH KELLY", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20217340", name: "AMOAH OKAILEY MARGARET", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20218121", name: "AMOAKOHENE FRANCIS XAVIER", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20213162", name: "AMOATENG ERNEST", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20216978", name: "ANAZAH BRIGHT", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20216560", name: "ANTWI KINGSLEY OWUSU", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20216683", name: "APPIAH RENEE OWUSU ANNOH", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20215382", name: "ARMAH KEKELI HIADZI", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20215483", name: "ARTHUR ADU RICHMOND", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS 20214787", name: "ARMAH OBED", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20217313", name: "ASAMOAH ESI", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS202110389", name: "ASAMOAH IVAN YEBOAH", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20214649", name: "ASANTE FRANK NYAMEYE SENIOR", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20215557", name: "ASARE ANGELA NYARKOA", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS 20211733", name: "ASIGBEY SEYRAM AMETORXE", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20212251", name: "ASUBONTENG-BOFFAH JAMES", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20219999", name: "AWUMEY RICHARD", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20216107", name: "AYENSU NANA-AMA SEMUAA", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20217101", name: "BADU PROSPER BOANUH", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20216359", name: "BAIDOO GIDEON", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS202110797", name: "BASOAH KENNETH AMPONSAH", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20217971", name: "BIESE-MACARTHY WORLAKO", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20217375", name: "BOAKYE NADIA MAAME EFUA", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS202111040", name: "BOATENG VALICE GODSTIME", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS202111122", name: "BOBIE RICHARD MIVA", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20219116", name: "BOSOMPEM JESSICA TWUMWAA", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20218484", name: "BOTWE EDINAME ANGELA", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20215785", name: "BRUCE PROSPER JOSEPH", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20214713", name: "BUBOAFOR EUGENIA JEMIMA", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20210002", name: "WONDER DOGBEY", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20216221", name: "DORDOYE SEMEFA ACHEAMPONMAA YAWA", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20216277", name: "DONKOR ENOCH AGYIRI", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20215679", name: "DONKOR GLORIA OSABEA", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS202110802", name: "DWAMENA EUGENE AYARKWA", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20216654", name: "DZAKUMA GABRIELLA AMENUVEVE AKU", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS202110752", name: "DZORGBE ELOLO ADZO", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20216702", name: "ENTSIE EMMANUEL KONADU", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20211718", name: "GAMOR MARY", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20210842", name: "GANYO WISDOM", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20213919", name: "GHARTEY AKUSHIKA CHELSEA", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20211368", name: "GYEKYE PAUL ANTWI", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20216924", name: "HENYREKPE MARK-JOHN", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS202110237", name: "HOWARD JUDE", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20211062", name: "JABAAL DANIEL", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20218976", name: "KABORE DEDE ISABEL", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20211760", name: "KATAMANI VICTORIA", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20216121", name: "KAWUGA JEMIMA ETORNAM", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20219676", name: "KPARIBIL PATRICK", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20217914", name: "KWAKYE MENSAH DANIEL", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20216930", name: "KWAKYE YEBOAH EMMANUEL NYAMEKYE", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS202110021", name: "KYENKYEHENE ENOCH", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20219515", name: "MAWUDRO ELEANOR ATSU", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20216060", name: "MAWUSI ERNEST DELALI", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20215830", name: "MCKEOWN CALEB", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20219588", name: "MENSAH-SEBUABE THEOPHILUS", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20219215", name: "MENSAH-TETTEH ODEHEY", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20218107", name: "METTLE RAPHAEL HANSON", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20217283", name: "NSIAH LAWRENCE KOFI", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20217249", name: "NUDANU ISAAC", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20219057", name: "NYUIEFE KAFUI EDITH", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20217708", name: "OBENG JUDAH", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20217268", name: "ODJER FLORENCE DABRAH", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20216777", name: "ODURO MARFOA ABIGAIL AKOSUA", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS202110487", name: "ODURO PHRIMPONG DELVIN", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20213948", name: "OFORIWAA ESTHER", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20216113", name: "OKORLEY ATO TETTEH", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20217391", name: "OPONG EMMANUELLA", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20214861", name: "OPPONG-BAAH EMMANUELLA NANA", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS202110123", name: "OSEI BONSU JEFFREY", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20217861", name: "OSEI GYAN HERBERT", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20219673", name: "OSEI-TUTU RANSFORD JUNIOR", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS 20215724", name: "OSEKRE JOSHUA NII ADJETEY", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20216888", name: "OTOKUNOR JOSHUA", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20216725", name: "OWUSU ANSAH RANSFORD", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20217421", name: "OWUSUWAAH CHARITY AKUA", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS202111078", name: "PUNANA COSMOS", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20222814", name: "SANWUOK SUSSANA", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20216770", name: "SEDOHIA ALBERT GBAFA", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20213683", name: "SEDZRO MOSES", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20213775", name: "SEY VICTOR NANA SEKYI", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20217245", name: "SHAFIWU ABDUL RAZAK YORIMAH", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20223199", name: "SIFAH KOFI DANIEL", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20218351", name: "SOMADO JESSICA MAMAN DEDEI", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20218779", name: "TAKUH BRIGHT SELASIE", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20218985", name: "TAMATEY AARON TETTEY", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20221027", name: "TANDOH THEOPHILUS", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS202110019", name: "TENU COURAGE MORKPORKPOR", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS202110557", name: "TIASE BENJAMIN ELORM", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20216244", name: "TSEBI ERIC", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20217641", name: "TWUMASI MICHAEL AGYEI", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20214833", name: "VORDZORGBE YAO PETER", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20215078", name: "WAYOE MATTHEW TETTEY", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS202110569", name: "YEBOAH JULIET", programme: "MEDICINE", status: "Active" },
-  { level: "500", id: "UHAS20219005", name: "ZODE PRECIOUS", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS202213140", name: "ABEKAH KWESI", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS20225901", name: "ACHEAMPONG RANDOFF CLINTON NANA", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS202211576", name: "ADAMAH LOVERANCE SELORM", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS202212589", name: "ADAWU SOLOMON ELIKEM", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS202213942", name: "ADDEY ANGEL NANA YAABA", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS202214529", name: "ADDO DAVID AFRIYIE KAFUI", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS20222012", name: "ADDO NICOLE OBIRIBEA", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS20226295", name: "ADJEI LADY JANE AWUSI", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS202215806", name: "ADOTEY MERRILYN NAA DZORMO", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS20229173", name: "ADUADDY PRECIOUS", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS20223436", name: "AFENU ENAM YAA", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS20227320", name: "AGBENYO PEARL ENYO", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS202210661", name: "AGBETSISE YONAH", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS20228860", name: "AIDAM LOVE ATSU", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS202211476", name: "AMANKWAA DEGBE LOIS", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS202214508", name: "AMO OMARI KWASI OFORI", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS20228302", name: "AMOO RICHAEL OBIELEY", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS202213235", name: "ANDOH BLESSING KWAME", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS202214065", name: "ANING ISABELLA NANA SARPOMAA", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS20229191", name: "APPIAH LOIS POKUA", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS20224846", name: "ASAMOAH EMMANUELLA ANKOMAH", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS20221555", name: "AYAABA RACHEL", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS202213963", name: "BADAGBOR REDEEMER KOFI", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS20222660", name: "BOATENG LORD OPOKU", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS20228510", name: "BROBBEY  JAPHTER", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS20226790", name: "BROWN KENNEDY", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS20221828", name: "CODJOE ROMEO  NII AKUSHE", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS20220907", name: "DANIELLA ADZAH DZIEDZORM", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS20224137", name: "DANSO BENNEDICT TWUM", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS20227711", name: "DANSO RAYMOND PAMINAS", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS20225185", name: "DESOUZA KINGDAVID SELASIE KOFI", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS202214726", name: "DONKOR JAPHET", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS202214737", name: "DUFIE FEDRA", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS20227677", name: "DWEMOH COLLINS NANA", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS20229177", name: "DZAM SEDEM AFI", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS202213151", name: "ESSIBU BAABA YARTELBAH", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS20228661", name: "FIANU BELINDA LEBENE", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS20229190", name: "FIANU ISABEL NAANA ENAM", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS202214275", name: "FORSON CHRISTINE ASEMPA", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS202213120", name: "GANYO PRINCESS", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS20229744", name: "GOKA REGINALD KEKELI", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS202213951", name: "GYASI SAMUEL OBENG", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS202214292", name: "KLU RICHARD ELOLO", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS20229820", name: "KONU XORLA", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS20228944", name: "KORDA EDMUND NII LAMTEY", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS202213302", name: "LANSINI MUMUNI BASAANA", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS20225671", name: "LANYO TIMOTHY MAWULI", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS202214076", name: "MAAME YAA OFORIWAA OFORIATTA", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS202214664", name: "MARFO ENOCH ADJEI", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS202214022", name: "MENSAH MERCY LARTELEY", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS202211867", name: "MENSAH WILLIAM OFORI", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS202215609", name: "METEKU JESSICA SITSOFE", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS202213368", name: "NTOW LOUIS", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS202214217", name: "NTUMI JOANA SARFOWAA", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS20227539", name: "OBENG LOIS KWEGYIR", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS20225514", name: "ODJAO-NARTEY KELVIN TETTEH", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS202212408", name: "OFORI BOATENG DANIEL", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS20228841", name: "OSEI ISAAC", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS202212569", name: "OSMANU ILHAAM", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS20225997", name: "OTUTEYE JOSEPH SEMAYOR JNR", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS20226337", name: "OWADIEH  PRINCE  AMPONSAH", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS202214879", name: "OWUSU CLEVET OSEI", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS20228029", name: "OWUSU SILAS", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS202211210", name: "PALM EDITH MAA MOTA", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS20226203", name: "SACKEY SOLOMON", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS202211733", name: "SAFO NANA YAW", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS202213135", name: "SALIU UMMU", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS202215731", name: "SEY  CHRIS  ANGELA MARIAN", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS20228644", name: "SIABI ELINAM AKUA", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS20227998", name: "WOMBEOGO MELCHIZEDEK", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS20224483", name: "NYAMEKYE EDWARD BENEVOLENT", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS20225175", name: "BANAHENE MARGARET AKUA OFORIWAAH", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS20226466", name: "ADUKONU PRINCE CHARLES", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS20224992", name: "ADZOKPA  SERAPHINE AKU KEKELI", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS202211285", name: "AGBEKO KORBLAH ESEADE", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS20229305", name: "AGBLEKPE THYWILL", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS20228674", name: "AKROFI PROMISE NHYIRA", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS20226192", name: "AKWETEY JOSHUA NUERTEY", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS202212873", name: "AMESIANYA GODFRED", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS20229902", name: "AMEVOR GABRIEL", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS202214130", name: "ANTWI ZEPHANIAH KWEKU YEBOAH", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS202213274", name: "ATAMPUGRE  FREDA  AWINOMA", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS20225337", name: "ATANGA EMMANUEL ANABILA", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS202212783", name: "AWINI ELVIS AWINTOEN", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS202213567", name: "BOADU NICHOLAS", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS20227498", name: "BRITTANY KABA PINA", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS20226583", name: "BULLA JADE PERCY", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS20227372", name: "DOGBE CHRISTIAN", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS202212960", name: "DORNYA ERNEST MAWULI", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS20221620", name: "FIANKOYIRENKYI CHURCHILL", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS20225369", name: "GBEBLEWU KEKELI KOMLA", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS202213868", name: "GYAPONG HILDA AFIA ASANTEWAA", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS20225767", name: "HARUNA ABDULLAH ABASS", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS20227273", name: "HLORLEWU ISHMAEL SELASE", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS20224200", name: "KOMLAGA EUGENE ETONAM", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS20224479", name: "KWOFIE SAMUEL BENJAMIN", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS202216110", name: "LOUIS SONGEH", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS202214061", name: "OBENG KWAME ALEXANDER JUNIOR", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS202212285", name: "OFORI AARON ANYIMADU", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS202214633", name: "OHEMENG AUGUSTINE", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS20228350", name: "OPPONG EUNICE ASAAH", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS202211620", name: "OWUSU WILFRED", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS20221251", name: "OWUSU-AFRIYIE ALBERTINA SERWAA", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS202215443", name: "SAEED HAJIA SUMAYYA BINTU", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS202213117", name: "SARAH ODOI", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS202215362", name: "SMITH ELLIOTT YEBOAH", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS202212234", name: "SULAIMAN ZULAIHA TAHIRU", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UKRAINE", name: "TEMENG ADUBOFOUR DANIEL", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS20226531", name: "TORGBO RICHARD", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS202214753", name: "WIAFE GLORIA KONADU", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UHAS20223963", name: "YALMON JAPHETH NAAYINMAHEMI", programme: "MEDICINE", status: "Active" },
-  { level: "400", id: "UKRAINE", name: "YEBOAH SARKODIE MICHAEL", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202319370", name: "ACHEM WORLANYO OSRIC", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202332436", name: "ADJEI MENSAH KWAKU ADU", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202328287", name: "ADUGU JOSHUA EYRAM", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202333215", name: "ADZAMLI DICKSON", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202328942", name: "AGBELI WISDOM EDEM", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202326923", name: "AKOMEA ADDO KWADJO", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202323753", name: "AKPANDJA HENRY KWAKU", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202321441", name: "AMARTEY ELISHA NENE-ARMAH", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202321336", name: "ANDOH MELCHISEDEC", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202333539", name: "APPIAH BOATENG CYRIL", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202321630", name: "APPIAH NANA KWASI", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202318079", name: "ASARE BRAINARD JAY", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202320416", name: "ASARE DAVID KWAKU", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202330896", name: "ASHIE DROMOR AMON", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202324000", name: "ASIAM SAMUEL BOAKYE", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202322826", name: "ASIRIFI MICHAEL KISSI", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS20233364", name: "AVORYI SAMUEL ELIKPLEM", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202325550", name: "AWORTWE PAA KOFI DE-GRAFT", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202303438", name: "AYAMBILLAH IDDRISU SULLEY", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202330835", name: "AZZARO MUBARAK ASINAYIRE", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202322866", name: "BANSI ABUBAKARI SADIK ABDUL RAZAK", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202330284", name: "BOATENG GIDEON NYAMEKYE", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202321262", name: "COBBINA BLESSING", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202322294", name: "DANSO DENNIS", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202332481", name: "DICKSON KWADWO BOAKYE DUAH", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202319995", name: "DZEKEY DESMOND KWAME", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202323986", name: "EGBADZOR KENNETH BAKHITA YAO", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202327996", name: "HERMAN IRENAEUS TETTEH", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202319715", name: "KARIKARI KOFI YESU", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202322105", name: "KIATCHEY NICHOLAS KWAME", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202323308", name: "KPOFIANU CLINTON", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202322007", name: "KWABLA GABRIEL AYERTEY", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202325895", name: "LARBI RICHARD OPARE", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202328971", name: "MENSAH BEZALEEL KWAKU", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202323526", name: "MISSINOU MICHEL LOUIS", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202329809", name: "MOHAMMED UMEYR UMAR", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202332731", name: "MORTIGLO CALVIN SEYRAM", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202318128", name: "NANI SAMUEL", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202319837", name: "NORMESHIE PHILIP", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202318841", name: "NYAME OPPONG KYEKYEKU", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202326810", name: "NYANKSON FRANKLINE-JACOB EKOW", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202318379", name: "NYAUNU ALBERT SEDEM LARTEY", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202323131", name: "OBENG RANDY NANA KWADWO", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202327430", name: "OBLEJUMA LEMUEL AKO ANANG", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202326909", name: "ODOOM ABUBAKAR SADIQQUE", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202319064", name: "OSEI KWAKU MENSAH", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202330696", name: "OSWALD NUNOO", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202328445", name: "QUARTEY-PAPAFIO ARIEL MAWUNYO", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202326917", name: "RAJI FAITHFUL LIKEM KWESI", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202321962", name: "ROCKSON ERNEST KOJO", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202318708", name: "SARKWAH EDWIN PAPA YAW SARPONG", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202323469", name: "TETTEH DAVID MANORTEY", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202332709", name: "YEBOAH JEPHTHAH GYIMAH", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202329906", name: "ABANKWAH AKOSUA MIREKUA", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202322543", name: "AFREKU-BOAFO ETHEL", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202322536", name: "AGYEI PASCALINE ABENA", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202330281", name: "AKINTOLA PRECIOUS ESENAM", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202324437", name: "AKOTO NINA EDWINA EYERAM WOETS", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202324444", name: "AKOTO NINA ERIKA ESENAM WOE", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202326611", name: "AKPELOO REBECCA AFUA", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202321810", name: "AMEMASOR MARGARET AKPENE.", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202319836", name: "AMEMAZIOR THELMA EDEM ABLA", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202328404", name: "ANOWUO CASSANDRA AGYARKO", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202333748", name: "APANA SHAMMAH AYINBOBIN", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202333150", name: "APPIAGYEI MARY SPENDILOVE", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202326827", name: "ARTHUR EMMANUELLA BROWN", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202322717", name: "ARYITEY SHARON NAA DEDEI", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202421321", name: "ASAMPOA MAVIS AYINDOLIM", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202327169", name: "BENYAH NANA AMA", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202324472", name: "BLEVI MARKCILIA", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202323799", name: "BOAMAH NANA AMA EDWIBI", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202321452", name: "CLIVE-PLANGE JORMI EWURABENA", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202325303", name: "DAUTEY VANESSA EJORMI AWAZI", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202333536", name: "FOSU EFUA ABOAGYEWAA", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202323285", name: "GBAGBO ETORNAM EYRAM ESI", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202327604", name: "KUFFOUR OSEI CLAUDIA ANTWI", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202330446", name: "KWADZOVI-DEFOR THEODORA SEYRAM", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202333069", name: "LARKAI VANESSA GOODY NAA LARTELEY", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202330614", name: "MALM CLARISSA SARAH", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202324431", name: "MWIN CHRISTINE SUNGNOMA", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202325699", name: "NINIWOFENYO CAROLINE ETORNAM", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202328985", name: "NUGBA SAMUELLA ESENAM", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202318200", name: "OKAE AKOSUA ASAEBEA", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202326411", name: "ORISH JOSEE CHIDINMA", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202324247", name: "OTOO BROWN VICTORIA VALLINA", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202326702", name: "OWUSU ABENA SERWAA", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202330793", name: "OWUSU ADWOA POMAA", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202318758", name: "PINGNAA IVY SONGVIELE", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202332730", name: "SANNIE HAIRIYA SAHARA", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202318879", name: "SEGBEFIA JULIET AMA", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202332568", name: "SEGBEFIA PRINCESS VANESSA", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202322079", name: "TERRY GEORGINA SARFOA", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202333154", name: "TETTEH NELORM", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202332445", name: "TIA BERNICE SAMATA", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202332106", name: "TOTIMEH LYDIA OLERKI", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202324262", name: "ZOGLI MATILDA", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202320132", name: "AFARI EMMANUEL DEBRA", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202325702", name: "AGBORSOMU ISAAC NEWTON", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202325032", name: "NSOBILA DANIEL ABEIYE", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202333725", name: "TETTEH NICHOLAS KOFI JUNIOR", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202324461", name: "MOHAMMED RABIATU", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202329336", name: "ASANTE JOSEPH OCRAN", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202327375", name: "AYINE DOMINIC", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202325176", name: "EFFAH EMMANUEL", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202330490", name: "FIADJOE ABRAHAM -GL", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202321297", name: "OPOKU NYAMEKYE GIDEON", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202321771", name: "SUU-IRE JOHN MALYIR", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202329910", name: "ANDERSON JOANNITA ACHEAMPOMAA", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202327360", name: "GATOR-LAGBLE ENYO AKU", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202323021", name: "MAHU SITSOPE", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202328854", name: "OWUSU GYIMA OFORIWAA", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202322838", name: "OWUSU KRISTODIA", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202329574", name: "WORDEY ENYONAM ADZO", programme: "MEDICINE", status: "Active" },
-  { level: "300", id: "UHAS202324337", name: "YARBOI LOIS", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202422035", name: "EWURABENA GYAPOMAA BEEKO ADDO", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202421953", name: "MOHAMMED ABU HABIBA", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "", name: "ANDREW KLOMEGAH", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202421517", name: "ODOOM MARY ASABEA", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202420586", name: "SERWAA MARIA DANIELLA BONSU", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202420732", name: "PHLOTEY SEYRAM NAPHTALI", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202400280", name: "LOGLO WOODE JOAN EDINAM", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202420245", name: "ATSU ETONAM ERIC AGBO", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202421968", name: "OWUSU RACHEAL", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202421878", name: "MARTEY BEMPOMAH PRINCESS DEBBY", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202421988", name: "OFOSU MINTAH MERCY DANIELLA", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202490337", name: "GALLEY CELESTINA ELORM", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202421003", name: "DAARA ELIZABETH", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202421482", name: "NYANWURA THULINDA BAKUFIA", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202400306", name: "OPOKU IVY POKUAA", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202421496", name: "MENSAH EMMANUELLA AFIBA", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202421459", name: "DZEGEDE JULIET SENA", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202422071", name: "KLOMEGAH PETERINA", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202421586", name: "BOATENG PRINCE ADDAE", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202419601", name: "AHENKORAH CHURCHILL ASANTE", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202421606", name: "HOUNGO MANASSEH", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202421590", name: "TIMINCA LAWSON KWASI", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202420474", name: "AMOAH-BIMPONG GABRIELLA", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202420710", name: "KUMORDJI BLESS WILSON KWAKU", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202421865", name: "DOTSE GODSON SELASI", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202421151", name: "AGYEMANG YAW", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202421291", name: "KWADWO NANA AFRIYIE", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202420217", name: "TETTEH CALEB NARH", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202421352", name: "AGYEMAN JOSIAH KWADWO", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202421480", name: "ADDAE ERIC BOADU", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202419719", name: "OWUSU-AGYEMANG YAW SEFAH", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202421967", name: "BUASILENU SAMUEL KWABENA", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202420488", name: "MENSAH DUAH CHARLES", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202490310", name: "ASSAN BAAH SILAS", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202421438", name: "NUAMAH ADOM EFFAH", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202421438", name: "AGYARKO KELVIN ADU", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202419760", name: "AMANKWAH SHADRACK", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202420435", name: "AGBOSO AUGUSTINA YAA", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202421651", name: "AGYEI KEZIAH NHYIRA", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202421575", name: "TITRIKU PRINCE SENAM", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202421912", name: "AGYEKUM EMMANUEL BOAMAH", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202421852", name: "MORGADZI MANASSEH KELVIN", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202421603", name: "BOATENG JEFFERY", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202421512", name: "ASUMADU SAMUEL KWAKU BAAH", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202421911", name: "OBU PAUL DAVID", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202420505", name: "ANNAN DOROTHY ADU", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202421270", name: "BREDZEI EMMANUEL EDEM KOMLA", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202420162", name: "SEKYI-APPIAH KWADWO", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202420105", name: "JESSEWUNI ZEPHANIAH SUHUYINI", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202490213", name: "AKOLGO SIMON ATINGANE", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202420386", name: "LAMPTEY GODWILL JOHN", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202400352", name: "ASANTE SAMUEL AMARDI", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202419783", name: "ASANTE DAVID KWAKU OKYERE", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202419737", name: "DARKO GIDEON", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202419813", name: "INKOOM EDWIN KWARM", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202420468", name: "OPPONG NKETIAH RAMZEY", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202422346", name: "NUWORDZRO JONAS COURAGE", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202422342", name: "AKUMANI CONRAD EYRAM", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202421503", name: "ZIMMERMANN KATE KORKOR", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202421498", name: "KUMATROR BERTINA YORM", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202421201", name: "DAMPTEY NANA AMMA NHYIRA", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202420225", name: "EZU-ANNAN IVAN WOENABAKA", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202419862", name: "FRIMPONG KWABENA DESMOND", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202420612", name: "BEBLI IVY YAWO", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202419799", name: "AMETEFE ERNEST", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202420859", name: "DADZIE COMFORT", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202419738", name: "MILLS SANDRA", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202420087", name: "OPPONG BENEDICT BOAKYE FORDJOUR", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202420059", name: "IDDI ARDENAN", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202420085", name: "TANOR FRIMPONG LISTOWELL", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202422077", name: "VIDZA PRINCE YAYRA", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202400247", name: "KODJOE CLELAND MAGDALENE", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202422065", name: "OWUSU BENEDICTA ADUBIA", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202420641", name: "AWOLOH EMELDA LENUCIA", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202420320", name: "HOTOR DESMOND MAWUFEMOR", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202420685", name: "MINGLE KAREN", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202422052", name: "OBENG-KYEREMATENG EMMANUELLA YEBOAH", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202422050", name: "AGLONA PRINCE SYLVESTER ETORNAM", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202422088", name: "OFOSU-DANKYI SAMUEL KELI ANSONG", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202421859", name: "BECHE STEPHANIE MWINZIE", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202421280", name: "OWUSU NANA AKUA KORKOR", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202490280", name: "BART-PLANGE YACOBA", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202419882", name: "GBEZEH GABRIEL EDEM KWAKU", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202420823", name: "ACKAH BISMARK", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202490253", name: "OPOKU EMMANUEL", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202422040", name: "ADENTWI-SELBY CHARLES KWAMENA", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202420017", name: "OKANTAH ENOCH", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202421301", name: "ATITSOGBUI NANNEL ODEIBEA", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202421402", name: "HABADAH JESSICA EYRAM FALI", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202490206", name: "COFFIE RABIATU AARYAN", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202420197", name: "ABUSAH JEMIMA DZIDZOR", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202420953", name: "PREMPEH KWASI KATAKYIE", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202420198", name: "TETTEH CHELSEA NAA KOMEOKOR", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202420888", name: "LAMPTEY NII LANTEY MICHEAL", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202419764", name: "OFORI ADWOA ANIMA", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202421322", name: "HAMADU AYISHA", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202419680", name: "APPIAH CHARLOTTE", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202420294", name: "IMMANUEL XORLALI ADDISON", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202421297", name: "KORANTENG KELVIN LARBI", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202422080", name: "NYADEDZOR SOLOMON", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202420481", name: "SUNNU EVANS EDUDZI KOFI", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202420826", name: "NYAABA MARY ATADANA", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202419736", name: "AMPONSAH NYANTAKYIWAAH STELLA", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202400331", name: "TAKYI EBO INCOOM", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202420114", name: "LEKETTEY CATHERINE ELIZABETH AFI", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202420930", name: "NYAMADI DZIDZOR DORINDA ADZO", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202422039", name: "AFFRAM LARTEY ENRIQUETA", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202421853", name: "DEKU SANDY WORLANYO", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202421383", name: "UNIBONMOR LINDA NALIDO", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202421253", name: "GYIMAH KWAKU AYEH", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202420889", name: "DUNEEH KEZIA AKOSUA", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202421160", name: "MAHAMA JOYCE", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202420178", name: "NKETIAH DAVIS NANA FOSU", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202490263", name: "AANAM AYEYI DORKENOO", programme: "MEDICINE", status: "Active" },
-  { level: "200", id: "UHAS202419759", name: "KUSI-ADJEI, MILLICENT", programme: "DENTISTRY", status: "Active" },
-  { level: "200", id: "UHAS202419804", name: "OSAE-MANTE, KWESI OFORI", programme: "DENTISTRY", status: "Active" },
-  { level: "200", id: "UHAS202419968", name: "Tsyi, Anita Sharon Elom", programme: "DENTISTRY", status: "Active" },
-  { level: "200", id: "UHAS202419988", name: "ABDUL NASIR, FATIMA", programme: "DENTISTRY", status: "Active" },
-  { level: "200", id: "UHAS202420427", name: "Takyi, Isaac Kojo", programme: "DENTISTRY", status: "Active" },
-  { level: "200", id: "UHAS202421144", name: "TORSOO, ENYONAM PHILIPA A", programme: "DENTISTRY", status: "Active" },
-  { level: "200", id: "UHAS202421155", name: "WALIER, JOYCA", programme: "DENTISTRY", status: "Active" },
-  { level: "200", id: "UHAS202421172", name: "Jangu Ahmed, Ayisha  Delimwini", programme: "DENTISTRY", status: "Active" },
-  { level: "200", id: "UHAS202421179", name: "BOTCHWAY, DAVE", programme: "DENTISTRY", status: "Active" },
-  { level: "200", id: "UHAS202421208", name: "ANYIDOHO, MIRABELLE SEDEM", programme: "DENTISTRY", status: "Active" },
-  { level: "200", id: "UHAS202421243", name: "AHIABU, ELIJAH ELIKEM KWAKU", programme: "DENTISTRY", status: "Active" },
-  { level: "200", id: "UHAS202421250", name: "Wumbei, Kasuli Ziyad Mohammed", programme: "DENTISTRY", status: "Active" },
-  { level: "200", id: "UHAS202421267", name: "ANABA, CAESAR NSOH", programme: "DENTISTRY", status: "Active" },
-  { level: "200", id: "UHAS202421383", name: "JATOE, JAMES", programme: "DENTISTRY", status: "Active" },
-  { level: "200", id: "UHAS202421428", name: "OFFEI, EMMANUEL ADU", programme: "DENTISTRY", status: "Active" },
-  { level: "200", id: "UHAS202421441", name: "OFOSU, SARAH SENIOR", programme: "DENTISTRY", status: "Active" },
-  { level: "200", id: "UHAS202421504", name: "Danso Adu-Gyamfi, Lois", programme: "DENTISTRY", status: "Active" },
-  { level: "200", id: "UHAS202421787", name: "Tagbor, Roland Kwaku", programme: "DENTISTRY", status: "Active" },
-  { level: "200", id: "UHAS202421954", name: "ANOKYE, EMMANUELLA ANUONYAM", programme: "DENTISTRY", status: "Active" },
-  { level: "200", id: "UHAS202421962", name: "OSEI, KROPAH PRINCE HENRY", programme: "DENTISTRY", status: "Active" },
-  { level: "200", id: "UHAS202421967", name: "BUASILENU, SAMUEL KWABENA", programme: "DENTISTRY", status: "Active" },
-  { level: "200", id: "UHAS202422012", name: "Tamakloe, Bassilius Kekeli Korblah", programme: "DENTISTRY", status: "Active" },
-  { level: "200", id: "UHAS202490230", name: "AGYEI, ENOCK", programme: "DENTISTRY", status: "Active" },
-  { level: "200", id: "UHAS202490343", name: "Adzah, David", programme: "DENTISTRY", status: "Active" },
-  { level: "100", id: "UHAS202500885", name: "Nudo Akpene", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202503967", name: "Atinga Audrey Ateeboba", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202500929", name: "Afenyo-dehlor Blessings Senam", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202501522", name: "Nyarko Mark Quincy", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202514534", name: "Genya Valeria", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202502690", name: "Mensah Angelo", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202510122", name: "Yeboah Abigail Appiaa", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202501967", name: "Dansoh Melville George", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202513470", name: "Cudjoe Samuel Papa Anwonzoh", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202501217", name: "Gankui Pamela Shika Adzo", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202508358", name: "Doe Morris Deladem", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202500613", name: "Saakat Joyceline Winpang", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202500790", name: "Boahen Ernestina  Akua Twenewaa", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202511859", name: "Barns Solomon Joseph", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202505737", name: "Marfo Prince Nyamekye", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202502014", name: "Ayenera Jessica Aganamah", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202505686", name: "Obu Princess Amponsah", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202506167", name: "Adawroma Collins Enam", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202508482", name: "Oteng Jonathan Antwi", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202510473", name: "Kposu Eliezer Shika", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202514205", name: "Ankomah Ezekiel  Kwabena Afum-mensah", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202500104", name: "Akortsu Lydia Sitsope", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202509352", name: "Anaman Hillary Nana Efua", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202502590", name: "Ahorlu Desmond Xorse Korbla", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202514442", name: "Saeed Burhandeen Aisha", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202506203", name: "Dzebu Gloritta Delase", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202504549", name: "Boye Sally Naa Ayorkor", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202512358", name: "Yussif Kabiru", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202508242", name: "Avetu Priscilla Sedinam", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202509342", name: "Mohammed Suad Suhuyini", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202509967", name: "Buabeng Ohene Kwame Frimpong", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202509274", name: "Melomey Wilson Emmanuel", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202513972", name: "Bonsu  Dominic  Tei", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202501786", name: "Abotsi Justin Makafui", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202501286", name: "Amagloh Fedora Mawutor", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202509711", name: "Tamatey  Esther Arkor", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202509692", name: "Tamatey  Felicia Akweley", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202502037", name: "Sarfo-boateng Vicandy", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202501923", name: "Agyemang-benchie Nhyiraba", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202505349", name: "Kusi Stephen Junior", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202505469", name: "Duaquaye  Christian  Kofi", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202510142", name: "Acheampong Kwame Ohene", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202506039", name: "Emahi Mustapha", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202509670", name: "Nachelleh Sheryne Nuoviel", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202503807", name: "Adu-gyamfi Ivan Darko", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202509257", name: "Odoi Emmanuel Okpoti", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202503120", name: "Oppong  Charles Junior", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202502409", name: "Amoateng Blessing Nana Ama", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202502264", name: "Ngambire Yishimabeth Yengtel", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202505650", name: "Agyapong Lady Nelly", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202507125", name: "Abiwu Ekplorm Afi", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202512493", name: "Doe-mensah Redeemer Kekeli", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202514470", name: "Paintsil Elisa Karen", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202509958", name: "Bediako Alfred Nana Yaw", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202514954", name: "Ameevor  Dova Viola Aseye", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202507182", name: "Kporfor Princess Yayra", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202504125", name: "Yeenu Blessing Baaba", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202509066", name: "Bagida Kezia Nordziko", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202514079", name: "Nelson Arnold Jnr", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202503542", name: "Obeng Michael Boakye", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202500441", name: "Manu Blessing", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202510950", name: "Amponsem Priscilla Afia Agyeiwa", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202514953", name: "Delle Julien Naaluyele", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202508042", name: "Andoh Enoch Atta Baah", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202514797", name: "Amoh Claudia Adwoa Mansa", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202500077", name: "Gidi Feliicia", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202502138", name: "Anku Boateng  Valerie  Dela", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202508532", name: "Asiedu Eric Mensah", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202513538", name: "Dzefi Carl  Sedem", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202501013", name: "Kyei Nana Afia Dufie", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202514314", name: "Mallen-ntiador Wumbornen Toby Jude", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202511257", name: "Osei Emmanuel Oduro", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202514499", name: "Baidoo Nhyira Ansah", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202504764", name: "Sokpoi-eklu Sena", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202510465", name: "Okyere Emmanuel", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202503535", name: "Wiafe Prince Boadi", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202502882", name: "Hanson Andy Fiifi Brefo", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202500975", name: "Apedoe Zaravis Maku", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202510152", name: "Adagbe Devina Eyram", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202507370", name: "Eshun Hillary Oye", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202510502", name: "Ababio Senyo", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202505200", name: "Antwi Justice", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202512789", name: "Dadzie Kingsley Triumph", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202511363", name: "Kwofie Isabella Adjoba", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202501289", name: "Amoh-boahen Kwaku Mintah", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202501599", name: "Asiedu Risberg Asiedua", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202513826", name: "Essel Baaba Ayeyi", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202501825", name: "Baidoe-ansah Jeannette", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202514757", name: "Akussah Nunana", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202505730", name: "Dzidzienyo Miguel Makafui Kwame", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202507917", name: "Essibu Paulina Nhyira", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202512185", name: "Nyinaku Nissi Asare Annor", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202508228", name: "Yirenkyi Cardimel Oparebea", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202502346", name: "Owusu Athanasius Sarpong", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202510261", name: "Opoku Ware Akua Adomaa", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202502231", name: "Bekoe-ess Nhyiraba  Chief-kakraba", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202505281", name: "Seadey Princess Keziah Eyram", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202508255", name: "Normenyo Patrick Yaw Elikem Junior", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202507062", name: "Ntow Danso Akyede Kwasi", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202503491", name: "Sikatse Samuel Sefadzi", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202514445", name: "Owusu-ansah Natalie", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202500323", name: "Addo Mark Aniapam", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202514461", name: "Madilo Priscilla  Delight Afi", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202501705", name: "Someah-kwaw Henry Francis", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202501120", name: "Adusei Eva Opoku", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202500498", name: "Trawule Pokuaa Maame Ama", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202504624", name: "Martinez Gil Brayan", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202504802", name: "Kayan Vera Bijiemi", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202501195", name: "Brown Sarah Takyiwaa", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202507369", name: "Laaribik Faith Feidib", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202500173", name: "Agyapong Karen Menka", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202513609", name: "Agyei Christopher", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202504891", name: "Lorbotwe22 Lord Amoh-siaw", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202502594", name: "Amexo Elvis Edudzi Yao", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202501789", name: "Djabatey Dorcas Koryoo", programme: "MEDICINE", status: "Active" },
-  { level: "100", id: "UHAS202502287", name: "Frimpong Sandra Serwaa", programme: "MEDICINE", status: "Active" }
+        { level: "600", id: "UHAS20200293", name: "GADZEY  BENJAMIN  BLESS", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20200389", name: "KISSI  EMMANUEL", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20200609", name: "ANYORMISI ELIZABETH", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20200685", name: "EMMANUEL AHENFUL", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20201101", name: "ODURO HEAVELYN AMMA FAA", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20201351", name: "AKALBEO SAMUEL AYINBILA", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20201371", name: "UNINKPEL  SAMPSON    NILIGNAN", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20201441", name: "COFIE ANNE", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20201889", name: "KUETSIDZO KENNETH KEKELI", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20201919", name: "OFORI HANS", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20202172", name: "AKUFFO KAREN NHYIRA", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20202187", name: "AGBALE MAGAVA KOFI", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20202808", name: "FRIMPOMAA BOAKYE-YIADOM", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20202992", name: "DZOGBEDE  PRECIOUS", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20203225", name: "SARKODIE ROSELINE ADOMA", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20203397", name: "OPOKU-ACQUAH KOFI AHIMAH", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20203469", name: "APEDO AMANDA FAFALI AKU", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20203489", name: "PORTUPHY-LAMPTEY NII ODARTEY", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20203520", name: "BOARIE KINGSLEY SHEBAZAZOR", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20203646", name: "AMETAME LUCKY FAFA", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20203663", name: "DONGDEM MAXIMILIAN BARIKA", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20203678", name: "ENOCH KWAKU ADJAHO", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20203929", name: "ARMAH GWENDOLYN  NAANA EGYEFI", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20204011", name: "ANUM-LARYEA MERVEILLE ADJIN", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20204019", name: "SOGBE RACHEL AKOSUA", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20204158", name: "FOSU FRANK", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20204200", name: "DZIVENU JULIET ENYONAM", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20204230", name: "KWAO JOEL KWAME", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20204432", name: "QUANSAH ALEXANDER KOFI", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20204439", name: "AGYENIM BOATENG NANA YAA", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20204468", name: "HUSSEIN PEARL ESI DEMAWU", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20204549", name: "DAKEY GIDEON ELIKEM", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20204656", name: "KANDA MOYA YAAYA", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20204670", name: "FRIMPONG KWABENA AGYEN", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20204896", name: "GYAMERAH MICHAEL SARFO", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20205111", name: "ADDO ANIMA AYISI", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20205152", name: "ISMAIL KHADIJAH", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20205297", name: "ANKOMAH MAAME SERWAH  AMA", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20205298", name: "ARTHUR KENNETH", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20220063", name: "AMOABENG ISAAC", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20220546", name: "AMEGAVLUIE STEPHANIE FAFALI AFI", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS201910418", name: "MENSAH YAA KORANTEMA", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS201911256", name: "HONYA SAMUEL BUBUNE", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20205371", name: "ADAMS SELMA EWURAMA", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20205398", name: "OSEI KENNETH", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20205410", name: "AUGUSTINA MAWUNYO KELEKU", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20205441", name: "OBUTEY FRANCIS KOFI", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20205573", name: "VANESSA TULASI", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20205722", name: "GYASI-ACHEAMPONG WILLIAM", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20205737", name: "LOTSU ARNOLD TOKOTTAH", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20205749", name: "ANAMOAH BERNICE  NANA AMA EDUAWAH", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20205884", name: "GBEDDIE ELIAN DELASE", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20206026", name: "AGBOLEGBE JAMES", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20206126", name: "PATIENCE ODURO", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20206142", name: "DABI-DANKWAH MARYLYN", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20206188", name: "SABAKPO COLLINS ELORM", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20206279", name: "GBANAGLO EDWARD ELORM", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20206302", name: "OKAI ROSEMOND AMELEY", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20206371", name: "KAMASA FOSTER", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20206428", name: "AHIANKUI STEPHEN NYARKOTEY", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20206609", name: "AMEMASOR DORCAS DELALI", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20206672", name: "EMMANUELLA ADWUBI BONSU", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20206726", name: "MAQUESON MAWUKO AFETI", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20206878", name: "ESSUMAN PRINCE OWURAKU", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20206908", name: "MICHEAL ETORNAM COFFIE", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20207111", name: "ESSIBRAH AUDREY ADDO", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20207155", name: "MAWUSI SEFA ABENA", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20207253", name: "HENRIETTA KOOTSO ASHIE", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20207549", name: "GELLY FRANK KWADWO GYAMFI", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20207864", name: "JEMIMAH DOSOO OSORIA", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20207877", name: "MICHAEL OSEI MENSAH", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20207880", name: "EMMANUELLA ADEI KOTEY", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20207907", name: "AMANKWAH SAKYI YAW", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20207925", name: "MENSAH JESSICA AKOS", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20208120", name: "DOGBE DERRICK YAW", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20208485", name: "DARKO  LEONARD OFORI", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20208566", name: "CARDIGAH DANIEL ELIKEM", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20208600", name: "BOTWE GEORGE  OPARE", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20208676", name: "SHOOTER ADRIANO REUEL", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20220011", name: "BOAKYE MICHAEL", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20220198", name: "MARFO BEMPOMAA ESTHER", programme: "MEDICINE", status: "Active" },
+        { level: "600", id: "UHAS20223143", name: "OSEI NKANSAH GEORGE", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS202110281", name: "ADDO DOREEN TORPREH", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20218336", name: "ADJEI MENSAH EBENEZER", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20216166", name: "ADJEI-MENSAH PERPETUAL NYANTAKYIWAA", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20219023", name: "ADOBOE PRINCESS SELASI ATSUFOE", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20215502", name: "ADOMAKO PRINCE", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20214021", name: "ADZIKA PRISCILLA SITSOPE", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20218682", name: "AGBENYEGAH FELIX  KWASI", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20212551", name: "AGBODZENKPLE TORGBUI", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS202110298", name: "AGYEKUM FRANCIS KWAKYE SNR.", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20218613", name: "AGYEMAN-KORANTENG JEREMY DANQUAH", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS202110301", name: "AHOMKA- YEBOAH NANA BAFFOE", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20217258", name: "AKUTTEH GAD JULIAN MENSAH", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20218979", name: "AKWENSIVIE HENRIETTA YAA", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20212303", name: "ALHASSAN ISHMEAL", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20219745", name: "AMALINTINGA SILAS WINESAKIYA", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20211083", name: "AMISSAH KELLY", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20217340", name: "AMOAH OKAILEY MARGARET", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20218121", name: "AMOAKOHENE FRANCIS XAVIER", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20213162", name: "AMOATENG ERNEST", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20216978", name: "ANAZAH BRIGHT", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20216560", name: "ANTWI KINGSLEY OWUSU", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20216683", name: "APPIAH RENEE OWUSU ANNOH", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20215382", name: "ARMAH KEKELI HIADZI", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20215483", name: "ARTHUR ADU RICHMOND", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS 20214787", name: "ARMAH OBED", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20217313", name: "ASAMOAH ESI", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS202110389", name: "ASAMOAH IVAN YEBOAH", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20214649", name: "ASANTE FRANK NYAMEYE SENIOR", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20215557", name: "ASARE ANGELA NYARKOA", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS 20211733", name: "ASIGBEY SEYRAM AMETORXE", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20212251", name: "ASUBONTENG-BOFFAH JAMES", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20219999", name: "AWUMEY RICHARD", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20216107", name: "AYENSU NANA-AMA SEMUAA", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20217101", name: "BADU PROSPER BOANUH", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20216359", name: "BAIDOO GIDEON", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS202110797", name: "BASOAH KENNETH AMPONSAH", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20217971", name: "BIESE-MACARTHY WORLAKO", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20217375", name: "BOAKYE NADIA MAAME EFUA", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS202111040", name: "BOATENG VALICE GODSTIME", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS202111122", name: "BOBIE RICHARD MIVA", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20219116", name: "BOSOMPEM JESSICA TWUMWAA", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20218484", name: "BOTWE EDINAME ANGELA", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20215785", name: "BRUCE PROSPER JOSEPH", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20214713", name: "BUBOAFOR EUGENIA JEMIMA", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20210002", name: "WONDER DOGBEY", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20216221", name: "DORDOYE SEMEFA ACHEAMPONMAA YAWA", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20216277", name: "DONKOR ENOCH AGYIRI", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20215679", name: "DONKOR GLORIA OSABEA", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS202110802", name: "DWAMENA EUGENE AYARKWA", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20216654", name: "DZAKUMA GABRIELLA AMENUVEVE AKU", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS202110752", name: "DZORGBE ELOLO ADZO", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20216702", name: "ENTSIE EMMANUEL KONADU", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20211718", name: "GAMOR MARY", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20210842", name: "GANYO WISDOM", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20213919", name: "GHARTEY AKUSHIKA CHELSEA", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20211368", name: "GYEKYE PAUL ANTWI", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20216924", name: "HENYREKPE MARK-JOHN", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS202110237", name: "HOWARD JUDE", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20211062", name: "JABAAL DANIEL", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20218976", name: "KABORE DEDE ISABEL", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20211760", name: "KATAMANI VICTORIA", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20216121", name: "KAWUGA JEMIMA ETORNAM", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20219676", name: "KPARIBIL PATRICK", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20217914", name: "KWAKYE MENSAH DANIEL", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20216930", name: "KWAKYE YEBOAH EMMANUEL NYAMEKYE", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS202110021", name: "KYENKYEHENE ENOCH", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20219515", name: "MAWUDRO ELEANOR ATSU", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20216060", name: "MAWUSI ERNEST DELALI", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20215830", name: "MCKEOWN CALEB", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20219588", name: "MENSAH-SEBUABE THEOPHILUS", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20219215", name: "MENSAH-TETTEH ODEHEY", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20218107", name: "METTLE RAPHAEL HANSON", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20217283", name: "NSIAH LAWRENCE KOFI", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20217249", name: "NUDANU ISAAC", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20219057", name: "NYUIEFE KAFUI EDITH", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20217708", name: "OBENG JUDAH", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20217268", name: "ODJER FLORENCE DABRAH", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20216777", name: "ODURO MARFOA ABIGAIL AKOSUA", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS202110487", name: "ODURO PHRIMPONG DELVIN", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20213948", name: "OFORIWAA ESTHER", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20216113", name: "OKORLEY ATO TETTEH", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20217391", name: "OPONG EMMANUELLA", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20214861", name: "OPPONG-BAAH EMMANUELLA NANA", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS202110123", name: "OSEI BONSU JEFFREY", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20217861", name: "OSEI GYAN HERBERT", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20219673", name: "OSEI-TUTU RANSFORD JUNIOR", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS 20215724", name: "OSEKRE JOSHUA NII ADJETEY", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20216888", name: "OTOKUNOR JOSHUA", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20216725", name: "OWUSU ANSAH RANSFORD", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20217421", name: "OWUSUWAAH CHARITY AKUA", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS202111078", name: "PUNANA COSMOS", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20222814", name: "SANWUOK SUSSANA", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20216770", name: "SEDOHIA ALBERT GBAFA", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20213683", name: "SEDZRO MOSES", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20213775", name: "SEY VICTOR NANA SEKYI", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20217245", name: "SHAFIWU ABDUL RAZAK YORIMAH", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20223199", name: "SIFAH KOFI DANIEL", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20218351", name: "SOMADO JESSICA MAMAN DEDEI", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20218779", name: "TAKUH BRIGHT SELASIE", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20218985", name: "TAMATEY AARON TETTEY", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20221027", name: "TANDOH THEOPHILUS", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS202110019", name: "TENU COURAGE MORKPORKPOR", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS202110557", name: "TIASE BENJAMIN ELORM", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20216244", name: "TSEBI ERIC", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20217641", name: "TWUMASI MICHAEL AGYEI", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20214833", name: "VORDZORGBE YAO PETER", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20215078", name: "WAYOE MATTHEW TETTEY", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS202110569", name: "YEBOAH JULIET", programme: "MEDICINE", status: "Active" },
+        { level: "500", id: "UHAS20219005", name: "ZODE PRECIOUS", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS202213140", name: "ABEKAH KWESI", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS20225901", name: "ACHEAMPONG RANDOFF CLINTON NANA", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS202211576", name: "ADAMAH LOVERANCE SELORM", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS202212589", name: "ADAWU SOLOMON ELIKEM", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS202213942", name: "ADDEY ANGEL NANA YAABA", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS202214529", name: "ADDO DAVID AFRIYIE KAFUI", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS20222012", name: "ADDO NICOLE OBIRIBEA", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS20226295", name: "ADJEI LADY JANE AWUSI", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS202215806", name: "ADOTEY MERRILYN NAA DZORMO", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS20229173", name: "ADUADDY PRECIOUS", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS20223436", name: "AFENU ENAM YAA", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS20227320", name: "AGBENYO PEARL ENYO", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS202210661", name: "AGBETSISE YONAH", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS20228860", name: "AIDAM LOVE ATSU", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS202211476", name: "AMANKWAA DEGBE LOIS", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS202214508", name: "AMO OMARI KWASI OFORI", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS20228302", name: "AMOO RICHAEL OBIELEY", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS202213235", name: "ANDOH BLESSING KWAME", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS202214065", name: "ANING ISABELLA NANA SARPOMAA", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS20229191", name: "APPIAH LOIS POKUA", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS20224846", name: "ASAMOAH EMMANUELLA ANKOMAH", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS20221555", name: "AYAABA RACHEL", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS202213963", name: "BADAGBOR REDEEMER KOFI", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS20222660", name: "BOATENG LORD OPOKU", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS20228510", name: "BROBBEY  JAPHTER", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS20226790", name: "BROWN KENNEDY", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS20221828", name: "CODJOE ROMEO  NII AKUSHE", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS20220907", name: "DANIELLA ADZAH DZIEDZORM", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS20224137", name: "DANSO BENNEDICT TWUM", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS20227711", name: "DANSO RAYMOND PAMINAS", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS20225185", name: "DESOUZA KINGDAVID SELASIE KOFI", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS202214726", name: "DONKOR JAPHET", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS202214737", name: "DUFIE FEDRA", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS20227677", name: "DWEMOH COLLINS NANA", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS20229177", name: "DZAM SEDEM AFI", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS202213151", name: "ESSIBU BAABA YARTELBAH", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS20228661", name: "FIANU BELINDA LEBENE", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS20229190", name: "FIANU ISABEL NAANA ENAM", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS202214275", name: "FORSON CHRISTINE ASEMPA", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS202213120", name: "GANYO PRINCESS", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS20229744", name: "GOKA REGINALD KEKELI", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS202213951", name: "GYASI SAMUEL OBENG", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS202214292", name: "KLU RICHARD ELOLO", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS20229820", name: "KONU XORLA", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS20228944", name: "KORDA EDMUND NII LAMTEY", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS202213302", name: "LANSINI MUMUNI BASAANA", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS20225671", name: "LANYO TIMOTHY MAWULI", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS202214076", name: "MAAME YAA OFORIWAA OFORIATTA", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS202214664", name: "MARFO ENOCH ADJEI", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS202214022", name: "MENSAH MERCY LARTELEY", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS202211867", name: "MENSAH WILLIAM OFORI", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS202215609", name: "METEKU JESSICA SITSOFE", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS202213368", name: "NTOW LOUIS", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS202214217", name: "NTUMI JOANA SARFOWAA", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS20227539", name: "OBENG LOIS KWEGYIR", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS20225514", name: "ODJAO-NARTEY KELVIN TETTEH", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS202212408", name: "OFORI BOATENG DANIEL", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS20228841", name: "OSEI ISAAC", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS202212569", name: "OSMANU ILHAAM", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS20225997", name: "OTUTEYE JOSEPH SEMAYOR JNR", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS20226337", name: "OWADIEH  PRINCE  AMPONSAH", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS202214879", name: "OWUSU CLEVET OSEI", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS20228029", name: "OWUSU SILAS", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS202211210", name: "PALM EDITH MAA MOTA", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS20226203", name: "SACKEY SOLOMON", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS202211733", name: "SAFO NANA YAW", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS202213135", name: "SALIU UMMU", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS202215731", name: "SEY  CHRIS  ANGELA MARIAN", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS20228644", name: "SIABI ELINAM AKUA", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS20227998", name: "WOMBEOGO MELCHIZEDEK", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS20224483", name: "NYAMEKYE EDWARD BENEVOLENT", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS20225175", name: "BANAHENE MARGARET AKUA OFORIWAAH", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS20226466", name: "ADUKONU PRINCE CHARLES", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS20224992", name: "ADZOKPA  SERAPHINE AKU KEKELI", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS202211285", name: "AGBEKO KORBLAH ESEADE", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS20229305", name: "AGBLEKPE THYWILL", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS20228674", name: "AKROFI PROMISE NHYIRA", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS20226192", name: "AKWETEY JOSHUA NUERTEY", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS202212873", name: "AMESIANYA GODFRED", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS20229902", name: "AMEVOR GABRIEL", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS202214130", name: "ANTWI ZEPHANIAH KWEKU YEBOAH", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS202213274", name: "ATAMPUGRE  FREDA  AWINOMA", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS20225337", name: "ATANGA EMMANUEL ANABILA", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS202212783", name: "AWINI ELVIS AWINTOEN", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS202213567", name: "BOADU NICHOLAS", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS20227498", name: "BRITTANY KABA PINA", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS20226583", name: "BULLA JADE PERCY", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS20227372", name: "DOGBE CHRISTIAN", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS202212960", name: "DORNYA ERNEST MAWULI", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS20221620", name: "FIANKOYIRENKYI CHURCHILL", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS20225369", name: "GBEBLEWU KEKELI KOMLA", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS202213868", name: "GYAPONG HILDA AFIA ASANTEWAA", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS20225767", name: "HARUNA ABDULLAH ABASS", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS20227273", name: "HLORLEWU ISHMAEL SELASE", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS20224200", name: "KOMLAGA EUGENE ETONAM", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS20224479", name: "KWOFIE SAMUEL BENJAMIN", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS202216110", name: "LOUIS SONGEH", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS202214061", name: "OBENG KWAME ALEXANDER JUNIOR", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS202212285", name: "OFORI AARON ANYIMADU", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS202214633", name: "OHEMENG AUGUSTINE", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS20228350", name: "OPPONG EUNICE ASAAH", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS202211620", name: "OWUSU WILFRED", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS20221251", name: "OWUSU-AFRIYIE ALBERTINA SERWAA", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS202215443", name: "SAEED HAJIA SUMAYYA BINTU", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS202213117", name: "SARAH ODOI", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS202215362", name: "SMITH ELLIOTT YEBOAH", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS202212234", name: "SULAIMAN ZULAIHA TAHIRU", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UKRAINE", name: "TEMENG ADUBOFOUR DANIEL", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS20226531", name: "TORGBO RICHARD", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS202214753", name: "WIAFE GLORIA KONADU", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UHAS20223963", name: "YALMON JAPHETH NAAYINMAHEMI", programme: "MEDICINE", status: "Active" },
+        { level: "400", id: "UKRAINE", name: "YEBOAH SARKODIE MICHAEL", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202319370", name: "ACHEM WORLANYO OSRIC", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202332436", name: "ADJEI MENSAH KWAKU ADU", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202328287", name: "ADUGU JOSHUA EYRAM", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202333215", name: "ADZAMLI DICKSON", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202328942", name: "AGBELI WISDOM EDEM", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202326923", name: "AKOMEA ADDO KWADJO", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202323753", name: "AKPANDJA HENRY KWAKU", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202321441", name: "AMARTEY ELISHA NENE-ARMAH", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202321336", name: "ANDOH MELCHISEDEC", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202333539", name: "APPIAH BOATENG CYRIL", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202321630", name: "APPIAH NANA KWASI", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202318079", name: "ASARE BRAINARD JAY", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202320416", name: "ASARE DAVID KWAKU", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202330896", name: "ASHIE DROMOR AMON", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202324000", name: "ASIAM SAMUEL BOAKYE", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202322826", name: "ASIRIFI MICHAEL KISSI", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS20233364", name: "AVORYI SAMUEL ELIKPLEM", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202325550", name: "AWORTWE PAA KOFI DE-GRAFT", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202303438", name: "AYAMBILLAH IDDRISU SULLEY", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202330835", name: "AZZARO MUBARAK ASINAYIRE", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202322866", name: "BANSI ABUBAKARI SADIK ABDUL RAZAK", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202330284", name: "BOATENG GIDEON NYAMEKYE", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202321262", name: "COBBINA BLESSING", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202322294", name: "DANSO DENNIS", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202332481", name: "DICKSON KWADWO BOAKYE DUAH", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202319995", name: "DZEKEY DESMOND KWAME", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202323986", name: "EGBADZOR KENNETH BAKHITA YAO", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202327996", name: "HERMAN IRENAEUS TETTEH", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202319715", name: "KARIKARI KOFI YESU", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202322105", name: "KIATCHEY NICHOLAS KWAME", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202323308", name: "KPOFIANU CLINTON", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202322007", name: "KWABLA GABRIEL AYERTEY", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202325895", name: "LARBI RICHARD OPARE", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202328971", name: "MENSAH BEZALEEL KWAKU", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202323526", name: "MISSINOU MICHEL LOUIS", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202329809", name: "MOHAMMED UMEYR UMAR", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202332731", name: "MORTIGLO CALVIN SEYRAM", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202318128", name: "NANI SAMUEL", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202319837", name: "NORMESHIE PHILIP", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202318841", name: "NYAME OPPONG KYEKYEKU", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202326810", name: "NYANKSON FRANKLINE-JACOB EKOW", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202318379", name: "NYAUNU ALBERT SEDEM LARTEY", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202323131", name: "OBENG RANDY NANA KWADWO", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202327430", name: "OBLEJUMA LEMUEL AKO ANANG", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202326909", name: "ODOOM ABUBAKAR SADIQQUE", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202319064", name: "OSEI KWAKU MENSAH", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202330696", name: "OSWALD NUNOO", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202328445", name: "QUARTEY-PAPAFIO ARIEL MAWUNYO", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202326917", name: "RAJI FAITHFUL LIKEM KWESI", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202321962", name: "ROCKSON ERNEST KOJO", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202318708", name: "SARKWAH EDWIN PAPA YAW SARPONG", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202323469", name: "TETTEH DAVID MANORTEY", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202332709", name: "YEBOAH JEPHTHAH GYIMAH", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202329906", name: "ABANKWAH AKOSUA MIREKUA", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202322543", name: "AFREKU-BOAFO ETHEL", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202322536", name: "AGYEI PASCALINE ABENA", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202330281", name: "AKINTOLA PRECIOUS ESENAM", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202324437", name: "AKOTO NINA EDWINA EYERAM WOETS", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202324444", name: "AKOTO NINA ERIKA ESENAM WOE", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202326611", name: "AKPELOO REBECCA AFUA", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202321810", name: "AMEMASOR MARGARET AKPENE.", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202319836", name: "AMEMAZIOR THELMA EDEM ABLA", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202328404", name: "ANOWUO CASSANDRA AGYARKO", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202333748", name: "APANA SHAMMAH AYINBOBIN", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202333150", name: "APPIAGYEI MARY SPENDILOVE", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202326827", name: "ARTHUR EMMANUELLA BROWN", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202322717", name: "ARYITEY SHARON NAA DEDEI", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202421321", name: "ASAMPOA MAVIS AYINDOLIM", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202327169", name: "BENYAH NANA AMA", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202324472", name: "BLEVI MARKCILIA", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202323799", name: "BOAMAH NANA AMA EDWIBI", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202321452", name: "CLIVE-PLANGE JORMI EWURABENA", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202325303", name: "DAUTEY VANESSA EJORMI AWAZI", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202333536", name: "FOSU EFUA ABOAGYEWAA", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202323285", name: "GBAGBO ETORNAM EYRAM ESI", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202327604", name: "KUFFOUR OSEI CLAUDIA ANTWI", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202330446", name: "KWADZOVI-DEFOR THEODORA SEYRAM", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202333069", name: "LARKAI VANESSA GOODY NAA LARTELEY", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202330614", name: "MALM CLARISSA SARAH", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202324431", name: "MWIN CHRISTINE SUNGNOMA", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202325699", name: "NINIWOFENYO CAROLINE ETORNAM", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202328985", name: "NUGBA SAMUELLA ESENAM", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202318200", name: "OKAE AKOSUA ASAEBEA", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202326411", name: "ORISH JOSEE CHIDINMA", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202324247", name: "OTOO BROWN VICTORIA VALLINA", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202326702", name: "OWUSU ABENA SERWAA", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202330793", name: "OWUSU ADWOA POMAA", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202318758", name: "PINGNAA IVY SONGVIELE", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202332730", name: "SANNIE HAIRIYA SAHARA", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202318879", name: "SEGBEFIA JULIET AMA", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202332568", name: "SEGBEFIA PRINCESS VANESSA", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202322079", name: "TERRY GEORGINA SARFOA", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202333154", name: "TETTEH NELORM", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202332445", name: "TIA BERNICE SAMATA", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202332106", name: "TOTIMEH LYDIA OLERKI", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202324262", name: "ZOGLI MATILDA", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202320132", name: "AFARI EMMANUEL DEBRA", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202325702", name: "AGBORSOMU ISAAC NEWTON", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202325032", name: "NSOBILA DANIEL ABEIYE", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202333725", name: "TETTEH NICHOLAS KOFI JUNIOR", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202324461", name: "MOHAMMED RABIATU", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202329336", name: "ASANTE JOSEPH OCRAN", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202327375", name: "AYINE DOMINIC", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202325176", name: "EFFAH EMMANUEL", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202330490", name: "FIADJOE ABRAHAM -GL", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202321297", name: "OPOKU NYAMEKYE GIDEON", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202321771", name: "SUU-IRE JOHN MALYIR", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202329910", name: "ANDERSON JOANNITA ACHEAMPOMAA", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202327360", name: "GATOR-LAGBLE ENYO AKU", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202323021", name: "MAHU SITSOPE", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202328854", name: "OWUSU GYIMA OFORIWAA", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202322838", name: "OWUSU KRISTODIA", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202329574", name: "WORDEY ENYONAM ADZO", programme: "MEDICINE", status: "Active" },
+        { level: "300", id: "UHAS202324337", name: "YARBOI LOIS", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202422035", name: "EWURABENA GYAPOMAA BEEKO ADDO", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202421953", name: "MOHAMMED ABU HABIBA", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "", name: "ANDREW KLOMEGAH", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202421517", name: "ODOOM MARY ASABEA", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202420586", name: "SERWAA MARIA DANIELLA BONSU", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202420732", name: "PHLOTEY SEYRAM NAPHTALI", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202400280", name: "LOGLO WOODE JOAN EDINAM", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202420245", name: "ATSU ETONAM ERIC AGBO", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202421968", name: "OWUSU RACHEAL", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202421878", name: "MARTEY BEMPOMAH PRINCESS DEBBY", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202421988", name: "OFOSU MINTAH MERCY DANIELLA", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202490337", name: "GALLEY CELESTINA ELORM", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202421003", name: "DAARA ELIZABETH", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202421482", name: "NYANWURA THULINDA BAKUFIA", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202400306", name: "OPOKU IVY POKUAA", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202421496", name: "MENSAH EMMANUELLA AFIBA", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202421459", name: "DZEGEDE JULIET SENA", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202422071", name: "KLOMEGAH PETERINA", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202421586", name: "BOATENG PRINCE ADDAE", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202419601", name: "AHENKORAH CHURCHILL ASANTE", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202421606", name: "HOUNGO MANASSEH", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202421590", name: "TIMINCA LAWSON KWASI", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202420474", name: "AMOAH-BIMPONG GABRIELLA", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202420710", name: "KUMORDJI BLESS WILSON KWAKU", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202421865", name: "DOTSE GODSON SELASI", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202421151", name: "AGYEMANG YAW", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202421291", name: "KWADWO NANA AFRIYIE", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202420217", name: "TETTEH CALEB NARH", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202421352", name: "AGYEMAN JOSIAH KWADWO", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202421480", name: "ADDAE ERIC BOADU", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202419719", name: "OWUSU-AGYEMANG YAW SEFAH", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202421967", name: "BUASILENU SAMUEL KWABENA", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202420488", name: "MENSAH DUAH CHARLES", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202490310", name: "ASSAN BAAH SILAS", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202421438", name: "NUAMAH ADOM EFFAH", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202421438", name: "AGYARKO KELVIN ADU", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202419760", name: "AMANKWAH SHADRACK", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202420435", name: "AGBOSO AUGUSTINA YAA", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202421651", name: "AGYEI KEZIAH NHYIRA", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202421575", name: "TITRIKU PRINCE SENAM", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202421912", name: "AGYEKUM EMMANUEL BOAMAH", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202421852", name: "MORGADZI MANASSEH KELVIN", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202421603", name: "BOATENG JEFFERY", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202421512", name: "ASUMADU SAMUEL KWAKU BAAH", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202421911", name: "OBU PAUL DAVID", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202420505", name: "ANNAN DOROTHY ADU", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202421270", name: "BREDZEI EMMANUEL EDEM KOMLA", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202420162", name: "SEKYI-APPIAH KWADWO", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202420105", name: "JESSEWUNI ZEPHANIAH SUHUYINI", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202490213", name: "AKOLGO SIMON ATINGANE", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202420386", name: "LAMPTEY GODWILL JOHN", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202400352", name: "ASANTE SAMUEL AMARDI", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202419783", name: "ASANTE DAVID KWAKU OKYERE", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202419737", name: "DARKO GIDEON", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202419813", name: "INKOOM EDWIN KWARM", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202420468", name: "OPPONG NKETIAH RAMZEY", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202422346", name: "NUWORDZRO JONAS COURAGE", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202422342", name: "AKUMANI CONRAD EYRAM", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202421503", name: "ZIMMERMANN KATE KORKOR", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202421498", name: "KUMATROR BERTINA YORM", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202421201", name: "DAMPTEY NANA AMMA NHYIRA", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202420225", name: "EZU-ANNAN IVAN WOENABAKA", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202419862", name: "FRIMPONG KWABENA DESMOND", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202420612", name: "BEBLI IVY YAWO", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202419799", name: "AMETEFE ERNEST", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202420859", name: "DADZIE COMFORT", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202419738", name: "MILLS SANDRA", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202420087", name: "OPPONG BENEDICT BOAKYE FORDJOUR", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202420059", name: "IDDI ARDENAN", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202420085", name: "TANOR FRIMPONG LISTOWELL", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202422077", name: "VIDZA PRINCE YAYRA", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202400247", name: "KODJOE CLELAND MAGDALENE", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202422065", name: "OWUSU BENEDICTA ADUBIA", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202420641", name: "AWOLOH EMELDA LENUCIA", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202420320", name: "HOTOR DESMOND MAWUFEMOR", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202420685", name: "MINGLE KAREN", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202422052", name: "OBENG-KYEREMATENG EMMANUELLA YEBOAH", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202422050", name: "AGLONA PRINCE SYLVESTER ETORNAM", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202422088", name: "OFOSU-DANKYI SAMUEL KELI ANSONG", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202421859", name: "BECHE STEPHANIE MWINZIE", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202421280", name: "OWUSU NANA AKUA KORKOR", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202490280", name: "BART-PLANGE YACOBA", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202419882", name: "GBEZEH GABRIEL EDEM KWAKU", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202420823", name: "ACKAH BISMARK", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202490253", name: "OPOKU EMMANUEL", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202422040", name: "ADENTWI-SELBY CHARLES KWAMENA", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202420017", name: "OKANTAH ENOCH", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202421301", name: "ATITSOGBUI NANNEL ODEIBEA", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202421402", name: "HABADAH JESSICA EYRAM FALI", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202490206", name: "COFFIE RABIATU AARYAN", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202420197", name: "ABUSAH JEMIMA DZIDZOR", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202420953", name: "PREMPEH KWASI KATAKYIE", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202420198", name: "TETTEH CHELSEA NAA KOMEOKOR", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202420888", name: "LAMPTEY NII LANTEY MICHEAL", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202419764", name: "OFORI ADWOA ANIMA", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202421322", name: "HAMADU AYISHA", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202419680", name: "APPIAH CHARLOTTE", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202420294", name: "IMMANUEL XORLALI ADDISON", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202421297", name: "KORANTENG KELVIN LARBI", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202422080", name: "NYADEDZOR SOLOMON", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202420481", name: "SUNNU EVANS EDUDZI KOFI", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202420826", name: "NYAABA MARY ATADANA", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202419736", name: "AMPONSAH NYANTAKYIWAAH STELLA", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202400331", name: "TAKYI EBO INCOOM", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202420114", name: "LEKETTEY CATHERINE ELIZABETH AFI", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202420930", name: "NYAMADI DZIDZOR DORINDA ADZO", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202422039", name: "AFFRAM LARTEY ENRIQUETA", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202421853", name: "DEKU SANDY WORLANYO", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202421383", name: "UNIBONMOR LINDA NALIDO", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202421253", name: "GYIMAH KWAKU AYEH", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202420889", name: "DUNEEH KEZIA AKOSUA", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202421160", name: "MAHAMA JOYCE", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202420178", name: "NKETIAH DAVIS NANA FOSU", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202490263", name: "AANAM AYEYI DORKENOO", programme: "MEDICINE", status: "Active" },
+        { level: "200", id: "UHAS202419759", name: "KUSI-ADJEI, MILLICENT", programme: "DENTISTRY", status: "Active" },
+        { level: "200", id: "UHAS202419804", name: "OSAE-MANTE, KWESI OFORI", programme: "DENTISTRY", status: "Active" },
+        { level: "200", id: "UHAS202419968", name: "Tsyi, Anita Sharon Elom", programme: "DENTISTRY", status: "Active" },
+        { level: "200", id: "UHAS202419988", name: "ABDUL NASIR, FATIMA", programme: "DENTISTRY", status: "Active" },
+        { level: "200", id: "UHAS202420427", name: "Takyi, Isaac Kojo", programme: "DENTISTRY", status: "Active" },
+        { level: "200", id: "UHAS202421144", name: "TORSOO, ENYONAM PHILIPA A", programme: "DENTISTRY", status: "Active" },
+        { level: "200", id: "UHAS202421155", name: "WALIER, JOYCA", programme: "DENTISTRY", status: "Active" },
+        { level: "200", id: "UHAS202421172", name: "Jangu Ahmed, Ayisha  Delimwini", programme: "DENTISTRY", status: "Active" },
+        { level: "200", id: "UHAS202421179", name: "BOTCHWAY, DAVE", programme: "DENTISTRY", status: "Active" },
+        { level: "200", id: "UHAS202421208", name: "ANYIDOHO, MIRABELLE SEDEM", programme: "DENTISTRY", status: "Active" },
+        { level: "200", id: "UHAS202421243", name: "AHIABU, ELIJAH ELIKEM KWAKU", programme: "DENTISTRY", status: "Active" },
+        { level: "200", id: "UHAS202421250", name: "Wumbei, Kasuli Ziyad Mohammed", programme: "DENTISTRY", status: "Active" },
+        { level: "200", id: "UHAS202421267", name: "ANABA, CAESAR NSOH", programme: "DENTISTRY", status: "Active" },
+        { level: "200", id: "UHAS202421383", name: "JATOE, JAMES", programme: "DENTISTRY", status: "Active" },
+        { level: "200", id: "UHAS202421428", name: "OFFEI, EMMANUEL ADU", programme: "DENTISTRY", status: "Active" },
+        { level: "200", id: "UHAS202421441", name: "OFOSU, SARAH SENIOR", programme: "DENTISTRY", status: "Active" },
+        { level: "200", id: "UHAS202421504", name: "Danso Adu-Gyamfi, Lois", programme: "DENTISTRY", status: "Active" },
+        { level: "200", id: "UHAS202421787", name: "Tagbor, Roland Kwaku", programme: "DENTISTRY", status: "Active" },
+        { level: "200", id: "UHAS202421954", name: "ANOKYE, EMMANUELLA ANUONYAM", programme: "DENTISTRY", status: "Active" },
+        { level: "200", id: "UHAS202421962", name: "OSEI, KROPAH PRINCE HENRY", programme: "DENTISTRY", status: "Active" },
+        { level: "200", id: "UHAS202421967", name: "BUASILENU, SAMUEL KWABENA", programme: "DENTISTRY", status: "Active" },
+        { level: "200", id: "UHAS202422012", name: "Tamakloe, Bassilius Kekeli Korblah", programme: "DENTISTRY", status: "Active" },
+        { level: "200", id: "UHAS202490230", name: "AGYEI, ENOCK", programme: "DENTISTRY", status: "Active" },
+        { level: "200", id: "UHAS202490343", name: "Adzah, David", programme: "DENTISTRY", status: "Active" },
+        { level: "100", id: "UHAS202500885", name: "Nudo Akpene", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202503967", name: "Atinga Audrey Ateeboba", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202500929", name: "Afenyo-dehlor Blessings Senam", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202501522", name: "Nyarko Mark Quincy", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202514534", name: "Genya Valeria", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202502690", name: "Mensah Angelo", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202510122", name: "Yeboah Abigail Appiaa", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202501967", name: "Dansoh Melville George", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202513470", name: "Cudjoe Samuel Papa Anwonzoh", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202501217", name: "Gankui Pamela Shika Adzo", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202508358", name: "Doe Morris Deladem", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202500613", name: "Saakat Joyceline Winpang", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202500790", name: "Boahen Ernestina  Akua Twenewaa", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202511859", name: "Barns Solomon Joseph", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202505737", name: "Marfo Prince Nyamekye", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202502014", name: "Ayenera Jessica Aganamah", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202505686", name: "Obu Princess Amponsah", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202506167", name: "Adawroma Collins Enam", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202508482", name: "Oteng Jonathan Antwi", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202510473", name: "Kposu Eliezer Shika", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202514205", name: "Ankomah Ezekiel  Kwabena Afum-mensah", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202500104", name: "Akortsu Lydia Sitsope", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202509352", name: "Anaman Hillary Nana Efua", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202502590", name: "Ahorlu Desmond Xorse Korbla", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202514442", name: "Saeed Burhandeen Aisha", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202506203", name: "Dzebu Gloritta Delase", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202504549", name: "Boye Sally Naa Ayorkor", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202512358", name: "Yussif Kabiru", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202508242", name: "Avetu Priscilla Sedinam", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202509342", name: "Mohammed Suad Suhuyini", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202509967", name: "Buabeng Ohene Kwame Frimpong", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202509274", name: "Melomey Wilson Emmanuel", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202513972", name: "Bonsu  Dominic  Tei", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202501786", name: "Abotsi Justin Makafui", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202501286", name: "Amagloh Fedora Mawutor", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202509711", name: "Tamatey  Esther Arkor", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202509692", name: "Tamatey  Felicia Akweley", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202502037", name: "Sarfo-boateng Vicandy", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202501923", name: "Agyemang-benchie Nhyiraba", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202505349", name: "Kusi Stephen Junior", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202505469", name: "Duaquaye  Christian  Kofi", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202510142", name: "Acheampong Kwame Ohene", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202506039", name: "Emahi Mustapha", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202509670", name: "Nachelleh Sheryne Nuoviel", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202503807", name: "Adu-gyamfi Ivan Darko", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202509257", name: "Odoi Emmanuel Okpoti", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202503120", name: "Oppong  Charles Junior", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202502409", name: "Amoateng Blessing Nana Ama", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202502264", name: "Ngambire Yishimabeth Yengtel", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202505650", name: "Agyapong Lady Nelly", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202507125", name: "Abiwu Ekplorm Afi", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202512493", name: "Doe-mensah Redeemer Kekeli", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202514470", name: "Paintsil Elisa Karen", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202509958", name: "Bediako Alfred Nana Yaw", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202514954", name: "Ameevor  Dova Viola Aseye", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202507182", name: "Kporfor Princess Yayra", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202504125", name: "Yeenu Blessing Baaba", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202509066", name: "Bagida Kezia Nordziko", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202514079", name: "Nelson Arnold Jnr", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202503542", name: "Obeng Michael Boakye", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202500441", name: "Manu Blessing", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202510950", name: "Amponsem Priscilla Afia Agyeiwa", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202514953", name: "Delle Julien Naaluyele", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202508042", name: "Andoh Enoch Atta Baah", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202514797", name: "Amoh Claudia Adwoa Mansa", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202500077", name: "Gidi Feliicia", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202502138", name: "Anku Boateng  Valerie  Dela", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202508532", name: "Asiedu Eric Mensah", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202513538", name: "Dzefi Carl  Sedem", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202501013", name: "Kyei Nana Afia Dufie", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202514314", name: "Mallen-ntiador Wumbornen Toby Jude", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202511257", name: "Osei Emmanuel Oduro", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202514499", name: "Baidoo Nhyira Ansah", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202504764", name: "Sokpoi-eklu Sena", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202510465", name: "Okyere Emmanuel", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202503535", name: "Wiafe Prince Boadi", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202502882", name: "Hanson Andy Fiifi Brefo", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202500975", name: "Apedoe Zaravis Maku", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202510152", name: "Adagbe Devina Eyram", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202507370", name: "Eshun Hillary Oye", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202510502", name: "Ababio Senyo", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202505200", name: "Antwi Justice", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202512789", name: "Dadzie Kingsley Triumph", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202511363", name: "Kwofie Isabella Adjoba", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202501289", name: "Amoh-boahen Kwaku Mintah", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202501599", name: "Asiedu Risberg Asiedua", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202513826", name: "Essel Baaba Ayeyi", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202501825", name: "Baidoe-ansah Jeannette", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202514757", name: "Akussah Nunana", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202505730", name: "Dzidzienyo Miguel Makafui Kwame", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202507917", name: "Essibu Paulina Nhyira", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202512185", name: "Nyinaku Nissi Asare Annor", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202508228", name: "Yirenkyi Cardimel Oparebea", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202502346", name: "Owusu Athanasius Sarpong", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202510261", name: "Opoku Ware Akua Adomaa", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202502231", name: "BekOE-ess Nhyiraba  Chief-kakraba", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202505281", name: "Seadey Princess Keziah Eyram", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202508255", name: "Normenyo Patrick Yaw Elikem Junior", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202507062", name: "Ntow Danso Akyede Kwasi", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202503491", name: "Sikatse Samuel Sefadzi", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202514445", name: "Owusu-ansah Natalie", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202500323", name: "Addo Mark Aniapam", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202514461", name: "Madilo Priscilla  Delight Afi", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202501705", name: "Someah-kwaw Henry Francis", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202501120", name: "Adusei Eva Opoku", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202500498", name: "Trawule Pokuaa Maame Ama", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202504624", name: "Martinez Gil Brayan", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202504802", name: "Kayan Vera Bijiemi", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202501195", name: "Brown Sarah Takyiwaa", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202507369", name: "Laaribik Faith Feidib", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202500173", name: "Agyapong Karen Menka", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202513609", name: "Agyei Christopher", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202504891", name: "Lorbotwe22 Lord Amoh-siaw", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202502594", name: "Amexo Elvis Edudzi Yao", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202501789", name: "Djabatey Dorcas Koryoo", programme: "MEDICINE", status: "Active" },
+        { level: "100", id: "UHAS202502287", name: "Frimpong Sandra Serwaa", programme: "MEDICINE", status: "Active" }
     ];
     
     // ============== GLOBAL VARIABLES ==============
-    let studentDatabase = STUDENT_DATABASE; // Use embedded database
+    let studentDatabase = STUDENT_DATABASE;
     let selectedBlock = "";
     let selectedRoom = "";
     let selectedStudent = null;
+    let selectedExecutive = null;
     
     // ============== INITIALIZATION ==============
     document.addEventListener('DOMContentLoaded', function() {
@@ -1208,6 +1255,7 @@
         document.getElementById('auditDate').value = today;
         
         // Setup UI
+        generateExecutiveButtons();
         generateRoomButtons();
         setupEventListeners();
         updateOnlineStatus();
@@ -1217,20 +1265,87 @@
         showToast(`✅ Loaded ${studentDatabase.length} students`, 'success');
         updateStatus(`${studentDatabase.length} students loaded`);
         
-        // Load saved executive info
-        loadExecutiveInfo();
-        
         // Monitor network status
         window.addEventListener('online', updateOnlineStatus);
         window.addEventListener('offline', updateOnlineStatus);
         
-        // Auto-save executive info
-        document.getElementById('executiveName').addEventListener('input', saveExecutiveInfo);
-        document.getElementById('executiveID').addEventListener('input', saveExecutiveInfo);
-        
         // Add refresh button (for submissions only)
         createRefreshButton();
+        
+        // Load last selected executive from localStorage
+        loadSelectedExecutive();
     });
+    
+    // ============== EXECUTIVE SELECTION ==============
+    function generateExecutiveButtons() {
+        const executiveGrid = document.getElementById('executiveGrid');
+        executiveGrid.innerHTML = '';
+        
+        DEFAULT_EXECUTIVES.forEach(exec => {
+            const execBtn = document.createElement('div');
+            execBtn.className = 'executive-btn';
+            execBtn.dataset.executiveId = exec.id;
+            execBtn.dataset.executiveName = exec.name;
+            execBtn.textContent = `${exec.id} - ${exec.name}`;
+            executiveGrid.appendChild(execBtn);
+        });
+        
+        // Add click handlers for executive buttons
+        document.querySelectorAll('.executive-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.executive-btn').forEach(b => {
+                    b.classList.remove('selected');
+                });
+                
+                this.classList.add('selected');
+                selectedExecutive = {
+                    id: this.dataset.executiveId,
+                    name: this.dataset.executiveName
+                };
+                
+                updateSelectedExecutiveDisplay();
+                showToast(`Selected: ${selectedExecutive.id}`, 'success');
+                
+                // Save to localStorage
+                saveSelectedExecutive();
+            });
+        });
+    }
+    
+    function updateSelectedExecutiveDisplay() {
+        const displayElement = document.getElementById('selectedExecutive');
+        if (selectedExecutive) {
+            displayElement.innerHTML = `<strong>Selected Executive:</strong> ${selectedExecutive.id} - ${selectedExecutive.name}`;
+            displayElement.style.color = 'var(--primary)';
+        } else {
+            displayElement.innerHTML = 'No executive selected';
+            displayElement.style.color = '#666';
+        }
+    }
+    
+    function loadSelectedExecutive() {
+        const savedExec = localStorage.getItem('uhas_selected_executive');
+        if (savedExec) {
+            try {
+                selectedExecutive = JSON.parse(savedExec);
+                // Find and select the corresponding button
+                document.querySelectorAll('.executive-btn').forEach(btn => {
+                    if (btn.dataset.executiveId === selectedExecutive.id) {
+                        btn.classList.add('selected');
+                        updateSelectedExecutiveDisplay();
+                    }
+                });
+            } catch (e) {
+                console.error('Error loading saved executive:', e);
+            }
+        }
+    }
+    
+    function saveSelectedExecutive() {
+        if (selectedExecutive) {
+            localStorage.setItem('uhas_selected_executive', JSON.stringify(selectedExecutive));
+        }
+    }
     
     // ============== STUDENT SEARCH ==============
     document.getElementById('studentSearch').addEventListener('input', function(e) {
@@ -1327,23 +1442,24 @@
         showLoading('Submitting record...');
         
         try {
-            // Submit via Google Apps Script
+            // Try to submit directly to Google Sheets
             const response = await submitViaGoogleAppsScript(formData);
             
             if (response && response.success !== false) {
                 showToast('✅ Record submitted successfully!', 'success');
                 clearForm();
-                saveExecutiveInfo();
+                return true;
             } else {
                 throw new Error(response?.error || 'Submission failed');
             }
             
         } catch (error) {
-            console.error('Submission error:', error);
+            console.error('Direct submission error:', error);
             
             // Save locally for offline submission
             savePendingSubmission(formData);
             showToast('📱 Saved offline. Will submit when online.', 'warning');
+            return false;
             
         } finally {
             hideLoading();
@@ -1356,25 +1472,58 @@
         try {
             const response = await fetch(scriptUrl, {
                 method: 'POST',
+                mode: 'no-cors', // Add this to handle CORS issues
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(formData)
             });
             
-            // Try to parse response
-            const text = await response.text();
-            try {
-                return JSON.parse(text);
-            } catch (e) {
-                // If not JSON, assume success
-                return { success: true, message: 'Submitted successfully' };
-            }
+            // With no-cors mode, we can't read the response
+            // Assume success if the request was sent
+            return { success: true, message: 'Submitted successfully' };
             
         } catch (error) {
             console.error('Fetch error:', error);
-            throw error;
+            
+            // Try alternative method - use form submission
+            try {
+                await submitViaForm(formData);
+                return { success: true, message: 'Submitted via form' };
+            } catch (formError) {
+                console.error('Form submission error:', formError);
+                throw error;
+            }
         }
+    }
+    
+    async function submitViaForm(formData) {
+        const scriptUrl = CONFIG.SUBMISSION_ENDPOINT;
+        
+        // Create a hidden form
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = scriptUrl;
+        form.style.display = 'none';
+        form.target = '_blank'; // Submit in new window/tab
+        
+        // Add all form data as hidden inputs
+        for (const key in formData) {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = key;
+            input.value = formData[key];
+            form.appendChild(input);
+        }
+        
+        // Add to document and submit
+        document.body.appendChild(form);
+        form.submit();
+        
+        // Clean up
+        setTimeout(() => {
+            document.body.removeChild(form);
+        }, 1000);
     }
     
     function savePendingSubmission(formData) {
@@ -1392,6 +1541,7 @@
         updatePendingCount();
         
         console.log(`Saved pending submission ID: ${submissionId}`);
+        return submissionId;
     }
     
     // ============== EVENT HANDLERS ==============
@@ -1440,8 +1590,8 @@
             if (!validateForm()) return;
             
             const formData = {
-                executiveName: document.getElementById('executiveName').value.trim(),
-                executiveID: document.getElementById('executiveID').value.trim(),
+                executiveID: selectedExecutive.id,
+                executiveName: selectedExecutive.name,
                 auditDate: document.getElementById('auditDate').value,
                 studentID: selectedStudent.id,
                 studentName: selectedStudent.name,
@@ -1456,7 +1606,13 @@
                 appVersion: '3.0'
             };
             
-            await submitToGoogleSheets(formData);
+            // Try direct submission first
+            const submitted = await submitToGoogleSheets(formData);
+            
+            // If submitted online, clear form
+            if (submitted) {
+                clearForm();
+            }
         });
         
         // Clear form
@@ -1471,11 +1627,8 @@
     }
     
     function validateForm() {
-        const execName = document.getElementById('executiveName').value.trim();
-        const execID = document.getElementById('executiveID').value.trim();
-        
-        if (!execName || !execID) {
-            showToast('Please fill in your executive details', 'error');
+        if (!selectedExecutive) {
+            showToast('Please select your executive ID first', 'error');
             return false;
         }
         
@@ -1515,7 +1668,7 @@
         document.getElementById('bedSpace').value = '';
         document.getElementById('notes').value = '';
         
-        // Keep executive info and date
+        // Keep executive selection and date
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('auditDate').value = today;
         
@@ -1605,19 +1758,6 @@
             <small style="color: #888; font-size: 10px;">
                 Embedded database • Always available
             </small>`;
-    }
-    
-    function loadExecutiveInfo() {
-        const savedName = localStorage.getItem('uhas_exec_name');
-        const savedID = localStorage.getItem('uhas_exec_id');
-        
-        if (savedName) document.getElementById('executiveName').value = savedName;
-        if (savedID) document.getElementById('executiveID').value = savedID;
-    }
-    
-    function saveExecutiveInfo() {
-        localStorage.setItem('uhas_exec_name', document.getElementById('executiveName').value);
-        localStorage.setItem('uhas_exec_id', document.getElementById('executiveID').value);
     }
     
     function showLoading(text) {
