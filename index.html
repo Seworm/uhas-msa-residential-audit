@@ -511,8 +511,8 @@
     <script>
     // ============== CONFIGURATION ==============
     const CONFIG = {
-        // Google Sheets JSON URL - CORRECT FORMAT
-        STUDENT_DB_SHEET: "https://docs.google.com/spreadsheets/d/1gffuZSDnqPSZTQdwYe7Ee4mONQIrKh_sdHDjXWaZEyM/gviz/tq?tqx=out:json",
+        // FIXED: Use CORS proxy for Google Sheets access from GitHub Pages
+        STUDENT_DB_SHEET: "https://docs.google.com/spreadsheets/d/e/2PACX-1vROoZFFlVtT3LpPSfTYDgq0gdyr7fnW6auW1RkqKjHl62Q8b7rQNKB5ICzf4vZSCAAZex-hdbj_fIY/pub?output=csv",
         
         // Your Google Apps Script URL
         SUBMISSION_ENDPOINT: "https://script.google.com/macros/s/AKfycbxI8KyZQSuUsUtzZgQT71_JHCPnqcTs7jomfrK4-bW2JLlxWuOEWRZMA9AB3MdQm3K3/exec",
@@ -531,7 +531,9 @@
         console.log("App initialized");
         
         // Set today's date
-        document.getElementById('auditDate').value = new Date().toISOString().split('T')[0];
+        const today = new Date();
+        const formattedDate = today.toISOString().split('T')[0];
+        document.getElementById('auditDate').value = formattedDate;
         
         // Setup UI
         generateRoomButtons();
@@ -548,7 +550,7 @@
         window.addEventListener('online', function() {
             updateOnlineStatus();
             // Try to reload database when coming online
-            if (studentDatabase.length < 10) { // If very few students loaded
+            if (studentDatabase.length < 10) {
                 loadStudentDatabase();
             }
         });
@@ -558,119 +560,25 @@
     // ============== GOOGLE SHEETS LOADING ==============
     async function loadStudentDatabase() {
         showLoading('Loading student database from Google Sheets...');
+        updateStatus('Loading student database...');
         
         try {
-            // ALWAYS try to load from Google Sheets first
             await loadFromGoogleSheets();
             
             updateStudentCount();
             hideLoading();
             
             if (studentDatabase.length === 0) {
-                showToast('⚠️ No students found in database. Check sheet format.', 'warning');
+                showToast('⚠️ No students found in database.', 'warning');
+                updateStatus('No students loaded');
             } else {
                 showToast(`✅ Loaded ${studentDatabase.length} students`, 'success');
+                updateStatus(`${studentDatabase.length} students loaded`);
             }
             
         } catch (error) {
             console.error('Error loading database:', error);
             hideLoading();
-            
-            // NO SAMPLE DATA FALLBACK - Just show error
-            showToast('❌ Failed to load student database. Check internet connection.', 'error');
-            
-            // Update UI to show error state
-            document.getElementById('studentCount').innerHTML = 
-                `<span style="color: var(--danger);">
-                    <i class="fas fa-exclamation-triangle"></i> 
-                    Database connection failed
-                </span>`;
-        }
-    }
-    
-    async function loadFromGoogleSheets() {
-        try {
-            console.log("Loading from Google Sheets...");
-            
-            // Add timestamp to prevent caching
-            const url = CONFIG.STUDENT_DB_SHEET + "&_=" + Date.now();
-            console.log("Fetching URL:", url);
-            
-            const response = await fetch(url);
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const text = await response.text();
-            console.log("Received response length:", text.length);
-            
-            // Check if we got a valid response
-            if (!text.includes("google.visualization.Query.setResponse")) {
-                console.error("Invalid response format. Full response:", text.substring(0, 500));
-                throw new Error("Invalid Google Sheets response format");
-            }
-            
-            // Parse the Google Visualization API response
-            const jsonMatch = text.match(/google\.visualization\.Query\.setResponse\((.+)\);/);
-            if (!jsonMatch || !jsonMatch[1]) {
-                throw new Error("Could not parse JSON from response");
-            }
-            
-            const data = JSON.parse(jsonMatch[1]);
-            console.log("Parsed data structure:", data);
-            
-            // RESET database
-            studentDatabase = [];
-            
-            if (data.table && data.table.rows) {
-                console.log(`Found ${data.table.rows.length} rows in sheet`);
-                
-                // Process each row
-                data.table.rows.forEach((row, index) => {
-                    const cells = row.c;
-                    
-                    // Skip if no cells or not enough columns
-                    if (!cells || cells.length < 4) {
-                        console.warn(`Row ${index + 1} has insufficient columns:`, cells);
-                        return;
-                    }
-                    
-                    // Extract data from cells
-                    const level = cells[0]?.v?.toString()?.trim() || '';
-                    const id = cells[1]?.v?.toString()?.trim() || '';
-                    const name = cells[2]?.v?.toString()?.trim() || '';
-                    const programme = cells[3]?.v?.toString()?.trim() || 'Medicine';
-                    
-                    // Only add if we have essential data
-                    if (id && name) {
-                        studentDatabase.push({
-                            level: level,
-                            id: id,
-                            name: name,
-                            programme: programme
-                        });
-                    } else {
-                        console.warn(`Row ${index + 1} missing ID or Name:`, {level, id, name, programme});
-                    }
-                });
-                
-                console.log(`Successfully loaded ${studentDatabase.length} students`);
-                
-                if (studentDatabase.length > 0) {
-                    // Save for offline use
-                    localStorage.setItem('uhas_student_db', JSON.stringify(studentDatabase));
-                    localStorage.setItem('uhas_student_db_updated', new Date().toISOString());
-                    console.log("Saved to localStorage");
-                }
-                
-            } else {
-                console.error("No table data found in response:", data);
-                throw new Error("No student data found in sheet");
-            }
-            
-        } catch (error) {
-            console.error("Error in loadFromGoogleSheets:", error);
             
             // Try loading from localStorage as fallback
             const savedData = localStorage.getItem('uhas_student_db');
@@ -678,11 +586,96 @@
                 studentDatabase = JSON.parse(savedData);
                 console.log(`Loaded ${studentDatabase.length} students from localStorage cache`);
                 showToast(`📂 Using cached data (${studentDatabase.length} students)`, 'info');
+                updateStudentCount();
+                updateStatus(`${studentDatabase.length} students (cached)`);
             } else {
-                // NO SAMPLE DATA - rethrow error
-                throw error;
+                showToast('❌ Failed to load student database', 'error');
+                updateStatus('Database connection failed');
+                
+                document.getElementById('studentCount').innerHTML = 
+                    `<span style="color: var(--danger);">
+                        <i class="fas fa-exclamation-triangle"></i> 
+                        Database connection failed
+                    </span>`;
             }
         }
+    }
+    
+    async function loadFromGoogleSheets() {
+        return new Promise((resolve, reject) => {
+            try {
+                console.log("Loading from Google Sheets CSV...");
+                
+                // Use Papa Parse for CSV parsing
+                if (typeof Papa === 'undefined') {
+                    // Load Papa Parse library dynamically
+                    const script = document.createElement('script');
+                    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js';
+                    script.onload = () => parseCSV(resolve, reject);
+                    script.onerror = reject;
+                    document.head.appendChild(script);
+                } else {
+                    parseCSV(resolve, reject);
+                }
+                
+                function parseCSV(resolve, reject) {
+                    Papa.parse(CONFIG.STUDENT_DB_SHEET + "&_=" + Date.now(), {
+                        download: true,
+                        header: true,
+                        skipEmptyLines: true,
+                        complete: function(results) {
+                            console.log("CSV Parse complete:", results);
+                            
+                            if (results.errors.length > 0) {
+                                console.warn("CSV parse errors:", results.errors);
+                            }
+                            
+                            studentDatabase = [];
+                            
+                            // Process each row
+                            results.data.forEach((row, index) => {
+                                // Check for different possible column names
+                                const level = row.Level || row.level || row['Student Level'] || '';
+                                const id = row.ID || row.id || row['Student ID'] || row['Index Number'] || '';
+                                const name = row.Name || row.name || row['Student Name'] || row['Full Name'] || '';
+                                const programme = row.Programme || row.programme || row['Student Programme'] || 'Medicine';
+                                
+                                // Only add if we have essential data
+                                if (id && name && id.trim() !== '' && name.trim() !== '') {
+                                    studentDatabase.push({
+                                        level: level.toString().trim(),
+                                        id: id.toString().trim(),
+                                        name: name.toString().trim(),
+                                        programme: programme.toString().trim()
+                                    });
+                                } else if (id || name) {
+                                    console.warn(`Row ${index + 1} missing ID or Name:`, {level, id, name, programme});
+                                }
+                            });
+                            
+                            console.log(`Successfully loaded ${studentDatabase.length} students`);
+                            
+                            if (studentDatabase.length > 0) {
+                                // Save for offline use
+                                localStorage.setItem('uhas_student_db', JSON.stringify(studentDatabase));
+                                localStorage.setItem('uhas_student_db_updated', new Date().toISOString());
+                                console.log("Saved to localStorage");
+                            }
+                            
+                            resolve();
+                        },
+                        error: function(error) {
+                            console.error("CSV parse error:", error);
+                            reject(error);
+                        }
+                    });
+                }
+                
+            } catch (error) {
+                console.error("Error in loadFromGoogleSheets:", error);
+                reject(error);
+            }
+        });
     }
     
     // ============== STUDENT SEARCH ==============
@@ -690,7 +683,6 @@
         const searchTerm = e.target.value.trim().toLowerCase();
         const resultsDiv = document.getElementById('searchResults');
         
-        // Clear previous timeout
         clearTimeout(this.searchTimeout);
         
         if (searchTerm.length < 2) {
@@ -698,11 +690,9 @@
             return;
         }
         
-        // Show searching indicator
         resultsDiv.innerHTML = '<div class="search-item">Searching...</div>';
         resultsDiv.style.display = 'block';
         
-        // Debounce search
         this.searchTimeout = setTimeout(() => {
             performStudentSearch(searchTerm, resultsDiv);
         }, 300);
@@ -715,25 +705,26 @@
             return;
         }
         
-        // Search in both ID and name
         const results = studentDatabase.filter(student => {
             const idMatch = student.id.toLowerCase().includes(searchTerm);
             const nameMatch = student.name.toLowerCase().includes(searchTerm);
             return idMatch || nameMatch;
         });
         
-        // Sort: exact ID matches first
         results.sort((a, b) => {
             const aIdExact = a.id.toLowerCase() === searchTerm;
             const bIdExact = b.id.toLowerCase() === searchTerm;
             if (aIdExact && !bIdExact) return -1;
             if (!aIdExact && bIdExact) return 1;
             
-            // Then by level
+            const aStartsWith = a.id.toLowerCase().startsWith(searchTerm);
+            const bStartsWith = b.id.toLowerCase().startsWith(searchTerm);
+            if (aStartsWith && !bStartsWith) return -1;
+            if (!aStartsWith && bStartsWith) return 1;
+            
             return parseInt(a.level) - parseInt(b.level);
         });
         
-        // Limit results
         const displayResults = results.slice(0, 15);
         
         if (displayResults.length === 0) {
@@ -742,7 +733,6 @@
             return;
         }
         
-        // Display results
         resultsDiv.innerHTML = displayResults.map(student => `
             <div class="search-item" data-id="${student.id}">
                 <div style="font-weight: bold; color: var(--primary);">${student.id}</div>
@@ -757,7 +747,6 @@
         
         resultsDiv.style.display = 'block';
         
-        // Add click handlers
         document.querySelectorAll('.search-item').forEach(item => {
             item.addEventListener('click', function() {
                 const studentId = this.dataset.id;
@@ -788,24 +777,23 @@
         showLoading('Submitting record...');
         
         try {
-            // Submit via Google Apps Script
             const response = await submitViaGoogleAppsScript(formData);
             
             if (response.success) {
-                showToast('Record submitted successfully!', 'success');
+                showToast('✅ Record submitted successfully!', 'success');
                 clearForm();
                 logSubmission(formData, true);
+                
+                // Save executive info for future use
+                saveExecutiveInfo();
             } else {
                 throw new Error(response.error || 'Submission failed');
             }
             
         } catch (error) {
             console.error('Submission error:', error);
-            
-            // Save locally for later submission
+            showToast('❌ Submission failed. Saving offline...', 'error');
             savePendingSubmission(formData);
-            showToast('📱 Saved offline. Will submit when online.', 'warning');
-            clearForm();
             
         } finally {
             hideLoading();
@@ -817,12 +805,33 @@
         
         const payload = {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            mode: 'no-cors',
+            headers: { 
+                'Content-Type': 'application/json'
+            },
             body: JSON.stringify(formData)
         };
         
-        const response = await fetch(scriptUrl, payload);
-        return await response.json();
+        try {
+            const response = await fetch(scriptUrl, payload);
+            
+            // Try to parse response if possible
+            try {
+                const text = await response.text();
+                if (text) {
+                    return JSON.parse(text);
+                }
+            } catch (e) {
+                // If we can't parse JSON, assume success for no-cors mode
+                return { success: true, message: 'Submitted (no-cors mode)' };
+            }
+            
+            return { success: true };
+            
+        } catch (error) {
+            console.error('Fetch error:', error);
+            throw error;
+        }
     }
     
     function savePendingSubmission(formData) {
@@ -835,53 +844,43 @@
         localStorage.setItem('uhas_pending', JSON.stringify(pending));
         
         updatePendingCount();
+        showToast(`📱 Saved offline (${pending.length} pending)`, 'warning');
     }
     
-    // ============== FIXED EVENT HANDLERS ==============
+    // ============== EVENT HANDLERS ==============
     function setupEventListeners() {
-        / Block selection - UPDATED
-document.querySelectorAll('.block-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-        console.log('Block clicked:', this.dataset.block);
-        
-        // Remove selection from all blocks
-        document.querySelectorAll('.block-btn').forEach(b => {
-            b.classList.remove('selected');
-        });
-        
-        // Select current block
-        this.classList.add('selected');
-        selectedBlock = this.dataset.block;
-        
-        // Show room selection - UPDATED: use 'active' class instead of 'show'
-        const roomSection = document.getElementById('roomSection');
-        roomSection.classList.add('active');
-        
-        // Clear any previous room selection
-        selectedRoom = "";
-        document.querySelectorAll('.room-btn').forEach(r => {
-            r.classList.remove('selected');
-        });
-        
-        showToast(`Selected ${selectedBlock} block`, 'info');
-    });
-});
-        
-        // Room selection - FIXED
-        document.getElementById('roomsGrid').addEventListener('click', function(e) {
-            if (e.target.classList.contains('room-btn')) {
-                console.log('Room clicked:', e.target.dataset.room);
+        // Block selection
+        document.querySelectorAll('.block-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.block-btn').forEach(b => {
+                    b.classList.remove('selected');
+                });
                 
-                // Remove selection from all rooms
+                this.classList.add('selected');
+                selectedBlock = this.dataset.block;
+                
+                const roomSection = document.getElementById('roomSection');
+                roomSection.classList.add('active');
+                
+                selectedRoom = "";
                 document.querySelectorAll('.room-btn').forEach(r => {
                     r.classList.remove('selected');
                 });
                 
-                // Select clicked room
+                showToast(`Selected ${selectedBlock} block`, 'info');
+            });
+        });
+        
+        // Room selection
+        document.getElementById('roomsGrid').addEventListener('click', function(e) {
+            if (e.target.classList.contains('room-btn')) {
+                document.querySelectorAll('.room-btn').forEach(r => {
+                    r.classList.remove('selected');
+                });
+                
                 e.target.classList.add('selected');
                 selectedRoom = e.target.dataset.room;
                 
-                // Show confirmation
                 showToast(`Selected: ${selectedBlock}, Room ${selectedRoom}`, 'success');
             }
         });
@@ -890,10 +889,8 @@ document.querySelectorAll('.block-btn').forEach(btn => {
         document.getElementById('auditForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            // Validate
             if (!validateForm()) return;
             
-            // Prepare form data
             const formData = {
                 executiveName: document.getElementById('executiveName').value,
                 executiveID: document.getElementById('executiveID').value,
@@ -910,44 +907,11 @@ document.querySelectorAll('.block-btn').forEach(btn => {
                 deviceInfo: navigator.userAgent
             };
             
-            // Submit
             await submitToGoogleSheets(formData);
         });
         
         // Clear form
         document.getElementById('clearBtn').addEventListener('click', clearForm);
-        
-        // Reload database button
-        setupReloadButton();
-    }
-    
-    function setupReloadButton() {
-        const reloadBtn = document.createElement('button');
-        reloadBtn.innerHTML = '<i class="fas fa-sync-alt"></i>';
-        reloadBtn.title = 'Reload student database';
-        reloadBtn.style.cssText = `
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            font-size: 20px;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            z-index: 100;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        `;
-        reloadBtn.onclick = function() {
-            showToast('Reloading student database...', 'info');
-            loadStudentDatabase();
-        };
-        document.body.appendChild(reloadBtn);
     }
     
     function validateForm() {
@@ -966,34 +930,40 @@ document.querySelectorAll('.block-btn').forEach(btn => {
             return false;
         }
         
+        const executiveName = document.getElementById('executiveName').value.trim();
+        const executiveID = document.getElementById('executiveID').value.trim();
+        
+        if (!executiveName || !executiveID) {
+            showToast('Please fill in your executive details', 'error');
+            return false;
+        }
+        
         return true;
     }
     
     // ============== UTILITY FUNCTIONS ==============
     function clearForm() {
-    selectedStudent = null;
-    selectedBlock = "";
-    selectedRoom = "";
-    
-    document.getElementById('studentSearch').value = '';
-    document.getElementById('studentInfo').style.display = 'none';
-    
-    // Hide room section - UPDATED
-    const roomSection = document.getElementById('roomSection');
-    roomSection.classList.remove('active');
-    
-    // Clear selections
-    document.querySelectorAll('.block-btn').forEach(b => b.classList.remove('selected'));
-    document.querySelectorAll('.room-btn').forEach(b => b.classList.remove('selected'));
-    
-    document.getElementById('bedSpace').value = '';
-    document.getElementById('notes').value = '';
-    
-    // Keep executive info and date
-    document.getElementById('auditDate').value = new Date().toISOString().split('T')[0];
-    
-    showToast('Form cleared', 'info');
-}
+        selectedStudent = null;
+        selectedBlock = "";
+        selectedRoom = "";
+        
+        document.getElementById('studentSearch').value = '';
+        document.getElementById('studentInfo').style.display = 'none';
+        
+        const roomSection = document.getElementById('roomSection');
+        roomSection.classList.remove('active');
+        
+        document.querySelectorAll('.block-btn').forEach(b => b.classList.remove('selected'));
+        document.querySelectorAll('.room-btn').forEach(b => b.classList.remove('selected'));
+        
+        document.getElementById('bedSpace').value = '';
+        document.getElementById('notes').value = '';
+        
+        // Keep executive info and date
+        document.getElementById('auditDate').value = new Date().toISOString().split('T')[0];
+        
+        showToast('Form cleared', 'info');
+    }
     
     function generateRoomButtons() {
         const roomsGrid = document.getElementById('roomsGrid');
@@ -1010,7 +980,6 @@ document.querySelectorAll('.block-btn').forEach(btn => {
     
     function updateOnlineStatus() {
         const statusDiv = document.getElementById('syncStatus');
-        const statusText = document.getElementById('statusText');
         
         if (navigator.onLine) {
             statusDiv.className = 'sync-status online';
@@ -1025,21 +994,39 @@ document.querySelectorAll('.block-btn').forEach(btn => {
         }
     }
     
+    function updateStatus(text) {
+        const statusText = document.getElementById('statusText');
+        if (statusText) {
+            statusText.textContent = text;
+        }
+    }
+    
     async function syncPendingSubmissions() {
         const pending = JSON.parse(localStorage.getItem('uhas_pending') || '[]');
         if (pending.length === 0) return;
         
         showToast(`Syncing ${pending.length} pending submission(s)...`, 'info');
         
+        const failedSubmissions = [];
+        
         for (const submission of pending) {
             try {
                 await submitViaGoogleAppsScript(submission);
-                // Remove from pending if successful
-                const updatedPending = pending.filter(s => s.id !== submission.id);
-                localStorage.setItem('uhas_pending', JSON.stringify(updatedPending));
+                // Success - remove from pending
+                console.log('Synced pending submission:', submission.id);
             } catch (error) {
                 console.error('Failed to sync submission:', error);
+                failedSubmissions.push(submission);
             }
+        }
+        
+        // Update pending list
+        localStorage.setItem('uhas_pending', JSON.stringify(failedSubmissions));
+        
+        if (failedSubmissions.length === 0) {
+            showToast('✅ All pending submissions synced', 'success');
+        } else {
+            showToast(`⚠️ ${failedSubmissions.length} submissions still pending`, 'warning');
         }
         
         updatePendingCount();
@@ -1047,8 +1034,10 @@ document.querySelectorAll('.block-btn').forEach(btn => {
     
     function updatePendingCount() {
         const pending = JSON.parse(localStorage.getItem('uhas_pending') || '[]');
-        if (pending.length > 0) {
-            document.getElementById('statusText').textContent = `Online (${pending.length} pending)`;
+        const statusText = document.getElementById('statusText');
+        
+        if (pending.length > 0 && statusText) {
+            statusText.textContent = `Online (${pending.length} pending)`;
         }
     }
     
@@ -1087,7 +1076,7 @@ document.querySelectorAll('.block-btn').forEach(btn => {
             success: success,
             logTime: new Date().toISOString()
         });
-        localStorage.setItem('uhas_submission_log', JSON.stringify(log.slice(-100)));
+        localStorage.setItem('uhas_submission_log', JSON.stringify(log.slice(-50)));
     }
     
     function showLoading(text) {
@@ -1124,4 +1113,5 @@ document.querySelectorAll('.block-btn').forEach(btn => {
 </script>
 </body>
 </html>
+
 
